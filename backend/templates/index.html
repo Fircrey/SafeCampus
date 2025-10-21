@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Armas - IA UTADEO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔫 DETECTOR DE ARMAS - IA</h1>
+            <p>Sistema de detección en tiempo real con visión artificial</p>
+        </div>
+
+        <div class="content">
+            <div class="video-section">
+                <div class="video-container">
+                    <img id="videoStream" src="/video_feed" alt="Video Stream">
+                    <div class="status-badge offline" id="statusBadge">
+                        <span class="loading"></span> OFFLINE
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn-start" id="startBtn">▶ Iniciar Cámara</button>
+                    <button class="btn-stop" id="stopBtn" disabled>⏹ Detener</button>
+                    <button class="btn-clear" id="clearBtn">🗑 Limpiar Historial</button>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="card">
+                    <h3>📊 Estadísticas</h3>
+                    <div class="stat">
+                        <span class="stat-label">Total Detecciones:</span>
+                        <span class="stat-value" id="totalDetections">0</span>
+                    </div>
+                    <div class="stat danger">
+                        <span class="stat-label">Pistolas:</span>
+                        <span class="stat-value" id="gunsCount">0</span>
+                    </div>
+                    <div class="stat danger">
+                        <span class="stat-label">Cuchillos:</span>
+                        <span class="stat-value" id="knivesCount">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Confianza Promedio:</span>
+                        <span class="stat-value" id="avgConfidence">0%</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📋 Últimas Detecciones</h3>
+                    <div class="detection-list" id="detectionList">
+                        <div class="empty-state">Sin detecciones aún</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusBadge = document.getElementById('statusBadge');
+        const detectionList = document.getElementById('detectionList');
+        let isRunning = false;
+        let updateInterval;
+
+        startBtn.addEventListener('click', async () => {
+            const response = await fetch('/api/start', { method: 'POST' });
+            const data = await response.json();
+            if (data.success) {
+                isRunning = true;
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                statusBadge.classList.remove('offline');
+                statusBadge.innerHTML = '<span style="color: #00ff00;">● ONLINE</span>';
+                updateStats();
+                updateInterval = setInterval(updateStats, 1000);
+            }
+        });
+
+        stopBtn.addEventListener('click', async () => {
+            const response = await fetch('/api/stop', { method: 'POST' });
+            const data = await response.json();
+            if (data.success) {
+                isRunning = false;
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                statusBadge.classList.add('offline');
+                statusBadge.innerHTML = '<span class="loading"></span> OFFLINE';
+                clearInterval(updateInterval);
+            }
+        });
+
+        clearBtn.addEventListener('click', async () => {
+            await fetch('/api/clear-history', { method: 'POST' });
+            updateStats();
+        });
+
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                document.getElementById('totalDetections').textContent = stats.total_detections;
+                document.getElementById('gunsCount').textContent = stats.guns;
+                document.getElementById('knivesCount').textContent = stats.knives;
+                document.getElementById('avgConfidence').textContent = (stats.average_confidence * 100).toFixed(1) + '%';
+                const histResponse = await fetch('/api/history');
+                const history = await histResponse.json();
+                updateDetectionList(history);
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        function updateDetectionList(history) {
+            if (history.length === 0) {
+                detectionList.innerHTML = '<div class="empty-state">Sin detecciones aún</div>';
+                return;
+            }
+            detectionList.innerHTML = history.slice().reverse().map(detection => `
+                <div class="detection-item">
+                    <div class="detection-info">
+                        <span class="detection-class ${detection.class.toLowerCase()}">${detection.class.toUpperCase()}</span>
+                        <span class="detection-time">${detection.timestamp}</span>
+                    </div>
+                    <span class="detection-confidence">${(detection.confidence * 100).toFixed(1)}%</span>
+                </div>
+            `).join('');
+        }
+
+        setInterval(() => { if (isRunning) updateStats(); }, 2000);
+    </script>
+</body>
+</html>
