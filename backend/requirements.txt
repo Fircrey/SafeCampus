@@ -6,3 +6,4 @@ ultralytics==8.0.196
 python-socketio==5.9.0
 python-engineio==4.7.1
 Werkzeug==2.3.7
+python-dotenv==1.0.0
