@@ -5,7 +5,8 @@ const ROUTES = [
   {
     icon: <HeartHandshake className="h-5 w-5" />,
     title: "Bienestar Universitario",
-    text: "Apoyo emocional, orientación psicológica y derivación institucional. Línea directa: ext. 3940 · 6012427030."
+    text: "Apoyo emocional, orientación psicológica y derivación institucional.",
+    phones: [{ label: "6012427030", number: "6012427030" }]
   },
   {
     icon: <ClipboardList className="h-5 w-5" />,
@@ -25,12 +26,14 @@ const ROUTES = [
   {
     icon: <MapPin className="h-5 w-5" />,
     title: "Emergencia inmediata",
-    text: "Riesgo de vida: llama al 123 (Policía / Emergencias). Luego comunica a seguridad del campus."
+    text: "Riesgo de vida: llama al 123 (Policía / Emergencias). Luego comunica a seguridad del campus.",
+    phones: [{ label: "123 Emergencias", number: "123" }]
   },
   {
     icon: <Phone className="h-5 w-5" />,
     title: "Línea de crisis emocional",
-    text: "Línea 106 (Ministerio de Salud, gratuita). Disponible 24/7 para crisis emocional o ideación suicida."
+    text: "Línea 106 (Ministerio de Salud, gratuita). Disponible 24/7 para crisis emocional o ideación suicida.",
+    phones: [{ label: "106 Salud Mental", number: "106" }]
   }
 ];
 
@@ -53,7 +56,13 @@ export function RutasPage() {
 
         <div className="space-y-3">
           {ROUTES.map((route) => (
-            <RouteItem key={route.title} icon={route.icon} title={route.title} text={route.text} />
+            <RouteItem
+              key={route.title}
+              icon={route.icon}
+              title={route.title}
+              text={route.text}
+              phones={route.phones}
+            />
           ))}
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { clearHistory, startDetection, stopDetection } from "@/lib/flask-client";
 import { useAlertSound } from "@/hooks/useAlertSound";
 import { AlertBanner } from "./AlertBanner";
@@ -12,14 +12,24 @@ import { VideoFeed } from "./VideoFeed";
 
 export function DetectorPage() {
   const { play, toggleMute, isMuted } = useAlertSound();
-  const [muted, setMuted] = useState(false);
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { status, stats, log, activeAlert, clearLog } = useDetectorSocket({
+  const { status, stats, log, activeAlert, clearLog, dismissAlert } = useDetectorSocket({
     onAlert: () => play()
   });
+
+  useEffect(() => {
+    if (activeAlert) {
+      document.title = `⚠️ ALERTA — ${activeAlert.label} | SafeCampus AI`;
+    } else {
+      document.title = "SafeCampus AI";
+    }
+    return () => {
+      document.title = "SafeCampus AI";
+    };
+  }, [activeAlert]);
 
   const handleStart = useCallback(async () => {
     setLoading(true);
@@ -48,11 +58,6 @@ export function DetectorPage() {
     }
   }, []);
 
-  const handleToggleMute = useCallback(() => {
-    const nowMuted = toggleMute();
-    setMuted(nowMuted);
-  }, [toggleMute]);
-
   const handleClear = useCallback(async () => {
     clearLog();
     try {
@@ -75,11 +80,11 @@ export function DetectorPage() {
           </div>
           <DetectorControls
             active={active}
-            muted={muted}
+            muted={isMuted}
             loading={loading}
             onStart={handleStart}
             onStop={handleStop}
-            onToggleMute={handleToggleMute}
+            onToggleMute={toggleMute}
             onClear={handleClear}
           />
         </div>
@@ -95,11 +100,11 @@ export function DetectorPage() {
 
         {/* Alert banner */}
         {activeAlert && (
-          <AlertBanner alert={activeAlert} onDismiss={() => {}} />
+          <AlertBanner alert={activeAlert} onDismiss={dismissAlert} />
         )}
 
-        {/* Video feed */}
-        <VideoFeed active={active} status={status} />
+        {/* Video feed — solo si activo Y Flask responde */}
+        <VideoFeed active={active && status === "online"} status={status} />
 
         {/* Stats */}
         <StatsGrid stats={stats} />

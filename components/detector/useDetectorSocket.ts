@@ -23,10 +23,19 @@ interface UseDetectorSocketOptions {
 
 export function useDetectorSocket({ onAlert }: UseDetectorSocketOptions = {}) {
   const socketRef = useRef<Socket | null>(null);
-  const [status, setStatus] = useState<DetectorStatus>("offline");
+  const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onAlertRef = useRef(onAlert);
+  const wasEverOnlineRef = useRef(false);
+
+  const [status, setStatus] = useState<DetectorStatus>("connecting");
   const [stats, setStats] = useState<DetectorStats>(DEFAULT_STATS);
   const [log, setLog] = useState<DetectorLogEntry[]>([]);
   const [activeAlert, setActiveAlert] = useState<DetectorAlert | null>(null);
+
+  // Keep onAlertRef in sync without re-running the main effect
+  useEffect(() => {
+    onAlertRef.current = onAlert;
+  }, [onAlert]);
 
   useEffect(() => {
     const socket = io(FLASK_URL, {
@@ -37,6 +46,7 @@ export function useDetectorSocket({ onAlert }: UseDetectorSocketOptions = {}) {
     socketRef.current = socket;
 
     socket.on("connect", () => {
+      wasEverOnlineRef.current = true;
       setStatus("online");
     });
 
@@ -45,7 +55,7 @@ export function useDetectorSocket({ onAlert }: UseDetectorSocketOptions = {}) {
     });
 
     socket.on("connect_error", () => {
-      setStatus("offline");
+      setStatus(wasEverOnlineRef.current ? "offline" : "connecting");
     });
 
     socket.on("status_change", (data: { status: string }) => {
@@ -57,29 +67,37 @@ export function useDetectorSocket({ onAlert }: UseDetectorSocketOptions = {}) {
     });
 
     socket.on("new_detection", (entry: DetectorLogEntry) => {
-      setLog((prev) => [entry, ...prev].slice(0, 50));
+      const withId: DetectorLogEntry = { ...entry, id: crypto.randomUUID() };
+      setLog((prev) => [withId, ...prev].slice(0, 50));
     });
 
     socket.on("alert", (data: DetectorAlert) => {
       setActiveAlert(data);
-      onAlert?.(data);
-      // Auto-dismiss after 5s
-      setTimeout(() => setActiveAlert(null), 5000);
+      onAlertRef.current?.(data);
+      // Clear any existing auto-dismiss timer before setting a new one
+      if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
+      alertTimerRef.current = setTimeout(() => setActiveAlert(null), 5000);
     });
 
     socket.on("alert_clear", () => {
+      if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
       setActiveAlert(null);
     });
 
     return () => {
+      if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
       socket.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clearLog = useCallback(() => {
     setLog([]);
   }, []);
 
-  return { status, stats, log, activeAlert, clearLog };
+  const dismissAlert = useCallback(() => {
+    if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
+    setActiveAlert(null);
+  }, []);
+
+  return { status, stats, log, activeAlert, clearLog, dismissAlert };
 }

@@ -18,20 +18,26 @@ from ultralytics import YOLO
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "cambiar-esta-clave")
-CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.65"))
+try:
+    CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.65"))
+except (TypeError, ValueError):
+    CONFIDENCE_THRESHOLD = 0.65
 MAX_HISTORY = int(os.getenv("MAX_HISTORY", "50"))
 CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "0"))
 FRAME_SKIP = int(os.getenv("FRAME_SKIP", "3"))
 ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "10"))
 CLEAN_FRAMES_TO_CLEAR = int(os.getenv("CLEAN_FRAMES_TO_CLEAR", "20"))
+TARGET_FPS = int(os.getenv("TARGET_FPS", "30"))
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "best.pt")
 
 GUN_LABELS = {"gun", "arma", "pistola", "pistol"}
 KNIFE_LABELS = {"knife", "cuchillo"}
 WEAPON_LABELS = GUN_LABELS | KNIFE_LABELS
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
     format="[%(levelname)s] %(asctime)s - %(message)s",
     datefmt="%H:%M:%S",
 )
@@ -55,7 +61,8 @@ socketio = SocketIO(
 # ------------------------------------
 model = None
 camera = None
-is_running = False
+_stop_event = threading.Event()
+_stop_event.set()  # Inicialmente detenido
 lock = threading.Lock()
 
 
@@ -95,7 +102,7 @@ class DetectionTracker:
             "total_detections": len(history),
             "guns": guns,
             "knives": knives,
-            "average_confidence": float(avg_conf),
+            "average_confidence": avg_conf,
         }
 
 
@@ -130,6 +137,18 @@ def load_model():
 
 
 # ------------------------------------
+# HELPERS DE CAMARA
+# ------------------------------------
+def _release_camera():
+    """Centraliza la liberacion de la camara. Debe llamarse dentro del lock."""
+    global camera
+    if camera is not None and camera.isOpened():
+        camera.release()
+        log.info("Camara liberada correctamente")
+    camera = None
+
+
+# ------------------------------------
 # HELPERS DE DETECCION
 # ------------------------------------
 class AlertState:
@@ -143,7 +162,7 @@ class AlertState:
 
 
 def _process_detections(results, alert_state):
-    """Extrae detecciones y maneja transiciones de estado para alertas."""
+    """Extrae detecciones y maneja transiciones de estado. Retorna (detections, events)."""
     detections = []
     frame_has_weapon = False
     best_weapon = None
@@ -173,6 +192,7 @@ def _process_detections(results, alert_state):
                     best_weapon = detection
 
     now = time.time()
+    events = []
 
     if frame_has_weapon:
         alert_state.clean_frames = 0
@@ -180,8 +200,9 @@ def _process_detections(results, alert_state):
         # Log throttling: maximo 1 entrada cada 3 segundos por deteccion continua
         if now - alert_state.last_log_time >= 3.0:
             tracked = tracker.add(best_weapon["label"], best_weapon["confidence"])
-            socketio.emit("new_detection", tracked)
-            socketio.emit("stats_update", tracker.get_stats())
+            stats = tracker.get_stats()
+            events.append(("new_detection", tracked))
+            events.append(("stats_update", stats))
             alert_state.last_log_time = now
 
         # Alerta solo en transicion: no habia arma -> ahora si hay
@@ -189,12 +210,12 @@ def _process_detections(results, alert_state):
             # Cooldown: no re-alertar si ya alerto hace poco
             if now - alert_state.last_alert_time >= ALERT_COOLDOWN:
                 alert_state.last_alert_time = now
-                socketio.emit("alert", {
+                events.append(("alert", {
                     "type": "gun" if best_weapon["is_gun"] else "knife",
                     "label": best_weapon["label"],
                     "confidence": round(best_weapon["confidence"], 2),
                     "timestamp": datetime.now().strftime("%H:%M:%S"),
-                })
+                }))
                 log.info(
                     "Arma detectada: %s (%.0f%%)",
                     best_weapon["label"],
@@ -207,10 +228,10 @@ def _process_detections(results, alert_state):
         alert_state.clean_frames += 1
         if alert_state.clean_frames >= CLEAN_FRAMES_TO_CLEAR and alert_state.weapon_visible:
             alert_state.weapon_visible = False
-            socketio.emit("alert_clear", {})
+            events.append(("alert_clear", {}))
             log.info("Arma ya no visible en camara")
 
-    return detections
+    return detections, events
 
 
 def _draw_detections(frame, detections):
@@ -257,12 +278,12 @@ def _open_camera():
 
 
 def generate_frames():
-    global camera, is_running
+    global camera
 
     cam = _open_camera()
     if cam is None:
         log.error("No se pudo acceder a la camara (index=%d)", CAMERA_INDEX)
-        is_running = False
+        _stop_event.set()
         socketio.emit("status_change", {"status": "offline"})
         return
 
@@ -274,13 +295,15 @@ def generate_frames():
 
     frame_count = 0
     last_detections = []
-    empty_streak = 0
     retry_count = 0
     max_retries = 3
     alert_state = AlertState()
+    frame_interval = 1.0 / TARGET_FPS
 
     try:
-        while is_running:
+        while not _stop_event.is_set():
+            loop_start = time.time()
+
             success, frame = camera.read()
 
             if not success or frame is None:
@@ -293,7 +316,7 @@ def generate_frames():
                     cam = _open_camera()
                     if cam is None:
                         log.error("No se pudo reconectar la camara")
-                        is_running = False
+                        _stop_event.set()
                         break
                     with lock:
                         camera = cam
@@ -307,16 +330,16 @@ def generate_frames():
             # Solo correr YOLO cada N frames para reducir carga
             if frame_count % FRAME_SKIP == 0:
                 try:
-                    results = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
-                    new_detections = _process_detections(results, alert_state)
+                    frame_yolo = cv2.resize(frame, (640, 480))
+                    results = model(frame_yolo, conf=CONFIDENCE_THRESHOLD, imgsz=640, verbose=False)
+                    new_detections, events = _process_detections(results, alert_state)
+                    for event_name, event_data in events:
+                        socketio.emit(event_name, event_data)
+
                     if new_detections:
                         last_detections = new_detections
-                        empty_streak = 0
-                    else:
-                        empty_streak += 1
-                        # Mantener bounding boxes visibles hasta N frames limpios
-                        if empty_streak >= CLEAN_FRAMES_TO_CLEAR:
-                            last_detections = []
+                    elif alert_state.clean_frames >= CLEAN_FRAMES_TO_CLEAR:
+                        last_detections = []
                 except Exception as e:
                     log.error("Error en la deteccion: %s", e)
 
@@ -331,15 +354,19 @@ def generate_frames():
                 b"--frame\r\n"
                 b"Content-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
             )
+
+            # Regular FPS
+            elapsed = time.time() - loop_start
+            sleep_time = frame_interval - elapsed
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
     except GeneratorExit:
         log.info("Stream de video desconectado por el cliente")
     finally:
         with lock:
-            is_running = False
-            if camera is not None and camera.isOpened():
-                camera.release()
-                log.info("Camara liberada correctamente")
-            camera = None
+            _release_camera()
+        _stop_event.set()
         socketio.emit("status_change", {"status": "offline"})
 
 
@@ -359,34 +386,38 @@ def video_feed():
     )
 
 
+@app.route("/api/status")
+def api_status():
+    with lock:
+        cam_running = camera is not None and camera.isOpened()
+    return jsonify({
+        "model_loaded": model is not None,
+        "camera_running": cam_running,
+        "camera_index": CAMERA_INDEX,
+        "confidence_threshold": CONFIDENCE_THRESHOLD,
+        "stats": tracker.get_stats(),
+    })
+
+
 @app.route("/api/start", methods=["POST"])
 def start_camera():
-    global is_running, camera
-
     if model is None:
         return jsonify({"success": False, "message": "Modelo no cargado"}), 500
 
     with lock:
-        # Limpiar cualquier estado previo (ej: pagina recargada sin detener)
         if camera is not None and camera.isOpened():
-            camera.release()
-        camera = None
-        is_running = True
+            return jsonify({"success": False, "message": "Cámara ya en uso"}), 409
 
+    _stop_event.clear()
     log.info("Camara iniciada por el usuario")
     return jsonify({"success": True, "message": "Camara iniciada"})
 
 
 @app.route("/api/stop", methods=["POST"])
 def stop_camera():
-    global is_running, camera
-
+    _stop_event.set()
     with lock:
-        is_running = False
-        if camera is not None and camera.isOpened():
-            camera.release()
-            log.info("Camara liberada correctamente")
-        camera = None
+        _release_camera()
 
     socketio.emit("status_change", {"status": "offline"})
     log.info("Camara detenida por el usuario")
@@ -420,12 +451,23 @@ def handle_connect():
     log.info("Cliente conectado")
     stats = tracker.get_stats()
     emit("stats_update", stats)
-    emit("status_change", {"status": "online" if is_running else "offline"})
+    with lock:
+        cam_open = camera is not None and camera.isOpened()
+    emit("status_change", {"status": "online" if cam_open else "offline"})
 
 
 @socketio.on("disconnect")
 def handle_disconnect():
     log.info("Cliente desconectado")
+
+
+@socketio.on("get_status")
+def handle_get_status():
+    stats = tracker.get_stats()
+    with lock:
+        cam_open = camera is not None and camera.isOpened()
+    emit("status_change", {"status": "online" if cam_open else "offline"})
+    emit("stats_update", stats)
 
 
 # ------------------------------------

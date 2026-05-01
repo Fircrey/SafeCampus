@@ -18,15 +18,20 @@ export function SidebarLink({ href, label, icon: Icon, collapsed }: SidebarLinkP
   return (
     <Link
       href={href}
-      title={collapsed ? label : undefined}
-      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+      className={`relative group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
         isActive
           ? "bg-tadeo-yellow text-tadeo-blue"
           : "text-slate-300 hover:bg-white/10 hover:text-white"
       }`}
     >
       <Icon className="h-5 w-5 shrink-0" />
-      {!collapsed && <span className="truncate">{label}</span>}
+      {collapsed ? (
+        <span className="pointer-events-none absolute left-full ml-2 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+          {label}
+        </span>
+      ) : (
+        <span className="truncate">{label}</span>
+      )}
     </Link>
   );
 }

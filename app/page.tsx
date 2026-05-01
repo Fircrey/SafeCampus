@@ -5,7 +5,7 @@ import {
   MapPin,
   Zap
 } from "lucide-react";
-import { MetricCard } from "@/components/shared/MetricCard";
+import { DashboardStats } from "@/components/shared/DashboardStats";
 import { StatusCard } from "@/components/shared/StatusCard";
 
 const quickLinks = [
@@ -53,10 +53,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 self-center">
-              <MetricCard label="Alertas activas" value="04" />
-              <MetricCard label="Tiempo medio" value="2.8m" />
-              <MetricCard label="Derivaciones" value="12" />
-              <MetricCard label="Modelo" value="YOLOv8" />
+              <DashboardStats />
             </div>
           </div>
         </div>

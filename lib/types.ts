@@ -1,4 +1,5 @@
 export type ChatMessage = {
+  id?: string;
   role: "assistant" | "user";
   content: string;
 };
@@ -24,6 +25,7 @@ export type DetectorAlert = {
 };
 
 export type DetectorLogEntry = {
+  id?: string;
   class: string;
   confidence: number;
   timestamp: string;

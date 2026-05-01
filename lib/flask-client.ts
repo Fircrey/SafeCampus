@@ -9,6 +9,7 @@ import type { DetectorLogEntry, DetectorStats } from "./types";
 
 async function post(url: string): Promise<{ success: boolean; message?: string }> {
   const res = await fetch(url, { method: "POST" });
+  if (!res.ok) return { success: false, message: `HTTP ${res.status}` };
   return res.json() as Promise<{ success: boolean; message?: string }>;
 }
 
@@ -22,11 +23,13 @@ export async function stopDetection() {
 
 export async function getStats(): Promise<DetectorStats> {
   const res = await fetch(FLASK_API_STATS);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<DetectorStats>;
 }
 
 export async function getHistory(): Promise<DetectorLogEntry[]> {
   const res = await fetch(FLASK_API_HISTORY);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<DetectorLogEntry[]>;
 }
 

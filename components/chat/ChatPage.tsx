@@ -130,6 +130,11 @@ export function ChatPage() {
 
           {/* Controls */}
           <div className="space-y-3 border-t border-slate-200 p-5">
+            {reportMode && (
+              <p className="text-center text-xs font-semibold text-tadeo-blue">
+                Paso {reportStep + 1} de {REPORT_QUESTIONS.length} — Reporte guiado
+              </p>
+            )}
             <QuickPrompts onSelect={(p) => void sendMessage(p)} />
             <ChatInput
               value={input}
@@ -139,7 +144,7 @@ export function ChatPage() {
               reportMode={reportMode}
               disabled={loading}
             />
-            <ReportFlow onStart={startReport} />
+            <ReportFlow onStart={startReport} disabled={loading} />
           </div>
         </div>
       </div>

@@ -20,8 +20,15 @@ export function ChatInput({
   reportMode,
   disabled
 }: ChatInputProps) {
+  const handleSubmit = reportMode
+    ? (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        onReportAnswer?.();
+      }
+    : onSubmit;
+
   return (
-    <form className="flex gap-2" onSubmit={onSubmit}>
+    <form className="flex gap-2" onSubmit={handleSubmit}>
       <textarea
         className="focus-ring min-h-[52px] flex-1 resize-none border border-slate-300 px-3 py-3 text-sm"
         placeholder={reportMode ? "Responde la pregunta del reporte..." : "Escribe aquí..."}
@@ -31,8 +38,7 @@ export function ChatInput({
       />
       <button
         className="focus-ring flex w-12 items-center justify-center bg-tadeo-blue text-white disabled:opacity-60"
-        type={reportMode ? "button" : "submit"}
-        onClick={reportMode ? onReportAnswer : undefined}
+        type="submit"
         disabled={disabled}
         aria-label="Enviar"
       >

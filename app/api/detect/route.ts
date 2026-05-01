@@ -60,8 +60,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const data = await response.json();
-  const detections = (data.predictions || []).map((prediction: any) => ({
+  type RoboflowPrediction = {
+    class: string;
+    confidence: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+
+  const data = await response.json() as { predictions?: RoboflowPrediction[] };
+  const detections = (data.predictions || []).map((prediction) => ({
     class: prediction.class,
     confidence: prediction.confidence,
     x: prediction.x,

@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
+
 interface StatusCardProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   text: string;
 }

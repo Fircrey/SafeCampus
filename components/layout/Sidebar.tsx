@@ -10,7 +10,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`flex h-screen flex-col bg-tadeo-blueDark transition-all duration-300 ${
+      className={`hidden md:flex h-screen flex-col bg-tadeo-blueDark transition-all duration-300 ${
         collapsed ? "w-16" : "w-60"
       }`}
       style={{ position: "sticky", top: 0 }}

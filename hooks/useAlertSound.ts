@@ -1,14 +1,18 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 
 export function useAlertSound() {
-  const mutedRef = useRef(false);
+  const ctxRef = useRef<AudioContext | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   const play = useCallback(() => {
-    if (mutedRef.current) return;
+    if (isMuted) return;
     try {
-      const ctx = new AudioContext();
+      if (!ctxRef.current || ctxRef.current.state === "closed") {
+        ctxRef.current = new AudioContext();
+      }
+      const ctx = ctxRef.current;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
@@ -22,14 +26,11 @@ export function useAlertSound() {
     } catch {
       // AudioContext not available (SSR or blocked by browser)
     }
-  }, []);
+  }, [isMuted]);
 
   const toggleMute = useCallback(() => {
-    mutedRef.current = !mutedRef.current;
-    return mutedRef.current;
+    setIsMuted((prev) => !prev);
   }, []);
-
-  const isMuted = useCallback(() => mutedRef.current, []);
 
   return { play, toggleMute, isMuted };
 }

@@ -10,17 +10,24 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, loading }: ChatMessagesProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = containerRef.current;
+    if (!container) return;
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distanceFromBottom < 120) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, loading]);
 
   return (
-    <div className="h-[480px] space-y-3 overflow-y-auto p-5">
+    <div ref={containerRef} className="h-[480px] space-y-3 overflow-y-auto p-5">
       {messages.map((msg, i) => (
         <div
-          key={`${msg.role}-${i}`}
+          key={msg.id ?? `${msg.role}-${i}`}
           className={`max-w-[88%] whitespace-pre-line px-4 py-3 text-sm leading-6 ${
             msg.role === "assistant"
               ? "bg-slate-100 text-tadeo-ink"

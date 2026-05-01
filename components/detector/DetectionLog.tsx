@@ -30,7 +30,7 @@ export function DetectionLog({ entries }: DetectionLogProps) {
           <ul className="space-y-1">
             {entries.map((entry, i) => (
               <li
-                key={`${entry.timestamp}-${i}`}
+                key={entry.id ?? `${entry.timestamp}-${i}`}
                 className={`flex items-center justify-between rounded border-l-2 bg-cctv-bg/60 px-3 py-2 text-xs ${badgeColor(entry.class)}`}
               >
                 <span className="font-bold text-cctv-text">{entry.class}</span>
