@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Sidebar } from "@/components/layout/Sidebar";
 
 export const metadata: Metadata = {
   title: "SafeCampus AI",
@@ -14,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body className="flex min-h-screen">
+        <Sidebar />
+        <div className="flex-1 overflow-auto">{children}</div>
+      </body>
     </html>
   );
 }

@@ -37,3 +37,31 @@ select {
 .focus-ring {
   @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-tadeo-yellow focus-visible:ring-offset-2;
 }
+
+/* CCTV dark theme overrides */
+.cctv-theme {
+  color-scheme: dark;
+}
+
+.cctv-theme body {
+  background: #0a0e17;
+  color: #f1f5f9;
+}
+
+@keyframes alert-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.alert-pulse {
+  animation: alert-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes rec-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.rec-blink {
+  animation: rec-blink 1.2s step-end infinite;
+}

@@ -11,3 +11,27 @@ export type Detection = {
   width: number;
   height: number;
 };
+
+// --- Detector en vivo (Flask/YOLO) ---
+
+export type DetectorStatus = "online" | "offline" | "connecting";
+
+export type DetectorAlert = {
+  type: "gun" | "knife";
+  label: string;
+  confidence: number;
+  timestamp: string;
+};
+
+export type DetectorLogEntry = {
+  class: string;
+  confidence: number;
+  timestamp: string;
+};
+
+export type DetectorStats = {
+  total_detections: number;
+  guns: number;
+  knives: number;
+  average_confidence: number;
+};

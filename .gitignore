@@ -6,3 +6,11 @@ node_modules
 dist
 coverage
 *.log
+
+# Python / Flask backend
+__pycache__/
+*.pyc
+*.pyo
+backend/models/*.pt
+backend/.env
+backend/dataset/
