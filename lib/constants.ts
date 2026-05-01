@@ -2,8 +2,7 @@ import {
   Bot,
   Camera,
   LayoutDashboard,
-  MapPin,
-  ShieldCheck
+  MapPin
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -17,7 +16,6 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/detector", label: "Detector en Vivo", icon: Camera, darkTheme: true },
-  { href: "/analisis", label: "Análisis de Imagen", icon: ShieldCheck },
   { href: "/chat", label: "Chat de Bienestar", icon: Bot },
   { href: "/rutas", label: "Rutas Institucionales", icon: MapPin }
 ];

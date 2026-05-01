@@ -3,7 +3,6 @@ import {
   Bot,
   Camera,
   MapPin,
-  ShieldCheck,
   Zap
 } from "lucide-react";
 import { MetricCard } from "@/components/shared/MetricCard";
@@ -16,13 +15,6 @@ const quickLinks = [
     label: "Detector en Vivo",
     description: "Feed YOLO en tiempo real desde webcam.",
     accent: "bg-cctv-red"
-  },
-  {
-    href: "/analisis",
-    icon: ShieldCheck,
-    label: "Análisis de Imagen",
-    description: "Sube una foto y detecta armas con Roboflow.",
-    accent: "bg-tadeo-yellow"
   },
   {
     href: "/chat",
@@ -57,7 +49,7 @@ export default function DashboardPage() {
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-100">
                 Plataforma unificada para campus universitario: detección de armas en tiempo real,
-                análisis de imágenes con Roboflow, chatbot de apoyo emocional y rutas institucionales.
+                chatbot de apoyo emocional y rutas institucionales.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 self-center">
@@ -93,7 +85,7 @@ export default function DashboardPage() {
         {/* Quick links */}
         <section>
           <h2 className="mb-4 text-xl font-black text-tadeo-ink">Acceso rápido</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {quickLinks.map((item) => (
               <Link
                 key={item.href}
