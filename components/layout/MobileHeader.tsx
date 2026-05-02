@@ -3,12 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, ShieldCheck, X } from "lucide-react";
+import { LogOut, Menu, ShieldCheck, X } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/constants";
+import { useAuth } from "@/components/auth/AuthContext";
+import { hasMinRole } from "@/lib/auth-utils";
 
 export function MobileHeader() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => !item.minRole || hasMinRole(user?.role, item.minRole)
+  );
 
   return (
     <>
@@ -54,8 +61,8 @@ export function MobileHeader() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <ul className="space-y-1">
-              {NAV_ITEMS.map((item) => {
+            <ul className="flex-1 space-y-1">
+              {visibleItems.map((item) => {
                 const isActive =
                   item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
                 return (
@@ -76,6 +83,20 @@ export function MobileHeader() {
                 );
               })}
             </ul>
+
+            {/* User + Logout */}
+            {user && (
+              <div className="border-t border-white/10 pt-3 mt-3">
+                <p className="mb-2 truncate text-xs text-slate-400">{user.name}</p>
+                <button
+                  onClick={() => { logout(); setOpen(false); }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-white/10 hover:text-white"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
           </nav>
         </div>
       )}

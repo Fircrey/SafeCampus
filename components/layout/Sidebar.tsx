@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, ShieldCheck } from "lucide-react";
 import { SidebarLink } from "./SidebarLink";
 import { NAV_ITEMS } from "@/lib/constants";
+import { useAuth } from "@/components/auth/AuthContext";
+import { hasMinRole } from "@/lib/auth-utils";
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const { user, logout } = useAuth();
+
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => !item.minRole || hasMinRole(user?.role, item.minRole)
+  );
 
   return (
     <aside
@@ -33,7 +40,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2 py-4">
         <ul className="space-y-1">
-          {NAV_ITEMS.map((item) => (
+          {visibleItems.map((item) => (
             <li key={item.href}>
               <SidebarLink
                 href={item.href}
@@ -45,6 +52,23 @@ export function Sidebar() {
           ))}
         </ul>
       </nav>
+
+      {/* User info + Logout */}
+      {user && (
+        <div className="border-t border-white/10 px-3 py-3">
+          {!collapsed && (
+            <p className="mb-1 truncate text-xs text-slate-400">{user.name}</p>
+          )}
+          <button
+            onClick={logout}
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-400 hover:bg-white/10 hover:text-white"
+            title="Cerrar sesión"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>Salir</span>}
+          </button>
+        </div>
+      )}
 
       {/* Collapse toggle */}
       <div className="border-t border-white/10 p-2">

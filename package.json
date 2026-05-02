@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:flask": "cd backend && python app.py",
+    "dev:db": "docker compose up -d",
     "dev:all": "concurrently --names next,flask --prefix-colors cyan,yellow \"npm run dev\" \"npm run dev:flask\"",
     "build": "next build",
     "start": "next start",

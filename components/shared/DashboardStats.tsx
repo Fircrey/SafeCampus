@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MetricCard } from "./MetricCard";
+import { getStats } from "@/lib/flask-client";
 import type { DetectorStats } from "@/lib/types";
 
 export function DashboardStats() {
@@ -12,10 +13,8 @@ export function DashboardStats() {
 
     async function fetchStats() {
       try {
-        const res = await fetch("/flask/api/stats");
-        if (!res.ok || cancelled) return;
-        const data = (await res.json()) as DetectorStats;
-        setStats(data);
+        const data = await getStats();
+        if (!cancelled) setStats(data);
       } catch {
         // Flask offline — mantener null para mostrar valores demo
       }

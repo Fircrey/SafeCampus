@@ -7,7 +7,7 @@ from collections import deque
 
 import cv2
 import numpy as np
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 from ultralytics import YOLO
@@ -30,6 +30,8 @@ CLEAN_FRAMES_TO_CLEAR = int(os.getenv("CLEAN_FRAMES_TO_CLEAR", "20"))
 TARGET_FPS = int(os.getenv("TARGET_FPS", "30"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://safecampus:safecampus123@localhost:5433/safecampus")
+
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "best.pt")
 
 GUN_LABELS = {"gun", "arma", "pistola", "pistol"}
@@ -49,12 +51,45 @@ log = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 socketio = SocketIO(
     app,
-    cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    cors_allowed_origins=["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"],
     async_mode="threading",
 )
+
+# ------------------------------------
+# BASE DE DATOS
+# ------------------------------------
+from models import db, User
+from auth import auth_bp, admin_required, token_required, _decode_token
+from reports import reports_bp
+from admin import admin_bp
+
+db.init_app(app)
+
+app.register_blueprint(auth_bp)
+app.register_blueprint(reports_bp)
+app.register_blueprint(admin_bp)
+
+# Crear tablas y seed superadmin
+with app.app_context():
+    db.create_all()
+    # Seed superadmin si no existe
+    import bcrypt
+    admin_email = "admin@utadeo.edu.co"
+    if not User.query.filter_by(email=admin_email).first():
+        admin_user = User(
+            email=admin_email,
+            name="Super Admin",
+            password_hash=bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode(),
+            role="superadmin",
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+        log.info("Superadmin creado: %s / admin123", admin_email)
 
 # ------------------------------------
 # ESTADO GLOBAL
@@ -380,6 +415,11 @@ def index():
 
 @app.route("/video_feed")
 def video_feed():
+    # Auth via query param (img tags can't send headers)
+    token = request.args.get("token", "")
+    payload = _decode_token(token)
+    if not payload or payload.get("role") not in ("admin", "superadmin"):
+        return jsonify({"error": "Acceso denegado"}), 403
     return Response(
         generate_frames(),
         mimetype="multipart/x-mixed-replace; boundary=frame",
@@ -387,6 +427,7 @@ def video_feed():
 
 
 @app.route("/api/status")
+@admin_required
 def api_status():
     with lock:
         cam_running = camera is not None and camera.isOpened()
@@ -400,6 +441,7 @@ def api_status():
 
 
 @app.route("/api/start", methods=["POST"])
+@admin_required
 def start_camera():
     if model is None:
         return jsonify({"success": False, "message": "Modelo no cargado"}), 500
@@ -414,6 +456,7 @@ def start_camera():
 
 
 @app.route("/api/stop", methods=["POST"])
+@admin_required
 def stop_camera():
     _stop_event.set()
     with lock:
@@ -425,11 +468,13 @@ def stop_camera():
 
 
 @app.route("/api/history")
+@admin_required
 def get_history():
     return jsonify(tracker.get_history())
 
 
 @app.route("/api/clear-history", methods=["POST"])
+@admin_required
 def clear_history():
     tracker.clear()
     stats = tracker.get_stats()
@@ -439,6 +484,7 @@ def clear_history():
 
 
 @app.route("/api/stats")
+@token_required
 def get_stats():
     return jsonify(tracker.get_stats())
 

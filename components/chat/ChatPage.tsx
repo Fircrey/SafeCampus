@@ -3,6 +3,7 @@
 import { Bot } from "lucide-react";
 import { FormEvent, useState } from "react";
 import type { ChatMessage } from "@/lib/types";
+import { createReport } from "@/lib/flask-client";
 import { ChatInput } from "./ChatInput";
 import { ChatMessages } from "./ChatMessages";
 import { QuickPrompts } from "./QuickPrompts";
@@ -15,8 +16,12 @@ const REPORT_QUESTIONS = [
   "¿Quieres dejar datos de contacto o prefieres reporte confidencial/anónimo?"
 ];
 
-function buildSummary(values: string[]) {
-  return `Reporte preliminar creado para revisión humana.\n\nTipo de situación: ${values[0]}\nLugar: ${values[1]}\nRiesgo inmediato: ${values[2]}\nContacto/confidencialidad: ${values[3]}\n\nSi hay riesgo actual, llama al 123 y contacta seguridad institucional. Este demo no envía el reporte a una autoridad real.`;
+function buildSummary(values: string[], saved: boolean) {
+  const base = `Reporte preliminar ${saved ? "guardado" : "creado"} para revisión humana.\n\nTipo de situación: ${values[0]}\nLugar: ${values[1]}\nRiesgo inmediato: ${values[2]}\nContacto/confidencialidad: ${values[3]}`;
+  if (saved) {
+    return base + "\n\nTu reporte ha sido registrado y será revisado por el equipo de seguridad.";
+  }
+  return base + "\n\nSi hay riesgo actual, llama al 123 y contacta seguridad institucional. No se pudo guardar el reporte automáticamente.";
 }
 
 export function ChatPage() {
@@ -84,26 +89,42 @@ export function ChatPage() {
     setMessages((prev) => [...prev, { role: "assistant", content: REPORT_QUESTIONS[0] }]);
   }
 
-  function handleReportAnswer() {
+  async function handleReportAnswer() {
     const answer = input.trim();
     if (!answer) return;
     const nextDraft = [...reportDraft, answer];
     const nextStep = reportStep + 1;
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: answer },
-      {
-        role: "assistant",
-        content:
-          nextStep < REPORT_QUESTIONS.length
-            ? REPORT_QUESTIONS[nextStep]
-            : buildSummary(nextDraft)
-      }
-    ]);
+
+    setMessages((prev) => [...prev, { role: "user", content: answer }]);
     setReportDraft(nextDraft);
     setReportStep(nextStep);
     setInput("");
-    if (nextStep >= REPORT_QUESTIONS.length) setReportMode(false);
+
+    if (nextStep < REPORT_QUESTIONS.length) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: REPORT_QUESTIONS[nextStep] }
+      ]);
+    } else {
+      // Final step: save to backend
+      setReportMode(false);
+      const isAnonymous = nextDraft[3].toLowerCase().includes("anónim") || nextDraft[3].toLowerCase().includes("confidencial");
+      let saved = false;
+      try {
+        await createReport({
+          type_description: nextDraft[0],
+          location: nextDraft[1],
+          immediate_risk: nextDraft[2],
+          contact_preference: nextDraft[3],
+          is_anonymous: isAnonymous,
+        });
+        saved = true;
+      } catch { /* ignore */ }
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: buildSummary(nextDraft, saved) }
+      ]);
+    }
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FLASK_VIDEO_FEED } from "@/lib/constants";
+import { useAuth } from "@/components/auth/AuthContext";
 import type { DetectorStatus } from "@/lib/types";
 
 interface VideoFeedProps {
@@ -11,6 +12,8 @@ interface VideoFeedProps {
 
 export function VideoFeed({ active, status }: VideoFeedProps) {
   const [imgError, setImgError] = useState(false);
+  const { token } = useAuth();
+  const videoUrl = token ? `${FLASK_VIDEO_FEED}?token=${token}` : FLASK_VIDEO_FEED;
 
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-cctv-card">
@@ -30,7 +33,7 @@ export function VideoFeed({ active, status }: VideoFeedProps) {
         ) : (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={FLASK_VIDEO_FEED}
+            src={videoUrl}
             alt="Feed de deteccion en vivo"
             className="h-full w-full object-cover"
             onError={() => setImgError(true)}

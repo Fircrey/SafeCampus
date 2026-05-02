@@ -1,3 +1,31 @@
+export type UserRole = "user" | "admin" | "superadmin";
+
+export type User = {
+  id: number;
+  email: string;
+  name: string;
+  role: UserRole;
+  is_active: boolean;
+  created_at: string | null;
+};
+
+export type ReportStatus = "open" | "reviewing" | "resolved" | "false_positive";
+
+export type Report = {
+  id: number;
+  user_id: number | null;
+  is_anonymous: boolean;
+  type_description: string;
+  location: string;
+  immediate_risk: string;
+  contact_preference: string;
+  status: ReportStatus;
+  notes: string | null;
+  created_at: string | null;
+  resolved_at: string | null;
+  resolved_by: number | null;
+};
+
 export type ChatMessage = {
   id?: string;
   role: "assistant" | "user";
