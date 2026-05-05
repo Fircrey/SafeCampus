@@ -1,9 +1,5 @@
-import { ChatPage } from "@/components/chat/ChatPage";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Chat de Bienestar · SafeCampus AI"
-};
-
-export default function ChatRoute() {
-  return <ChatPage />;
+export default function ChatRedirect() {
+  redirect("/ayuda");
 }

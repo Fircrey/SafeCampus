@@ -114,6 +114,56 @@ export async function createReport(report: {
   return data.report;
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Remove "data:image/...;base64," prefix
+      resolve(result.split(",")[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function createReportWithPhoto(
+  report: {
+    type_description: string;
+    location: string;
+    immediate_risk: string;
+    contact_preference: string;
+    is_anonymous?: boolean;
+  },
+  photo?: File | null
+): Promise<Report> {
+  if (!photo) return createReport(report);
+
+  const photoBase64 = await fileToBase64(photo);
+
+  const res = await fetch("/api/reports/upload", {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      ...report,
+      photo_base64: photoBase64,
+      photo_name: photo.name,
+    }),
+  });
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => "");
+    console.error("[createReportWithPhoto] Error:", res.status, errorBody);
+    throw new Error(`HTTP ${res.status}: ${errorBody}`);
+  }
+  const data = await res.json() as { report: Report };
+  return data.report;
+}
+
+export function getReportPhotoUrl(reportId: number): string {
+  const token = getToken();
+  return `${FLASK_API_REPORTS}/${reportId}/photo${token ? `?token=${token}` : ""}`;
+}
+
 export async function fetchReports(): Promise<Report[]> {
   const res = await fetch(FLASK_API_REPORTS, { headers: authHeaders() });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);

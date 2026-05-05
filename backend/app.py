@@ -8,6 +8,7 @@ from collections import deque
 import cv2
 import numpy as np
 from flask import Flask, Response, jsonify, request
+from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 from ultralytics import YOLO
@@ -51,6 +52,10 @@ log = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+CORS(app, origins=["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"],
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+     supports_credentials=True)
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -73,6 +78,10 @@ db.init_app(app)
 app.register_blueprint(auth_bp)
 app.register_blueprint(reports_bp)
 app.register_blueprint(admin_bp)
+
+# Crear carpeta uploads si no existe
+UPLOADS_DIR = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 # Crear tablas y seed superadmin
 with app.app_context():

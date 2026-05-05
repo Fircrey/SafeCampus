@@ -38,6 +38,7 @@ class Report(db.Model):
     location = db.Column(db.String(255), nullable=False)
     immediate_risk = db.Column(db.String(255), nullable=False)
     contact_preference = db.Column(db.String(255), nullable=False)
+    photo_filename = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), default="open")  # open | reviewing | resolved | false_positive
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -58,6 +59,7 @@ class Report(db.Model):
             "status": self.status,
             "notes": self.notes,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "photo_filename": self.photo_filename,
             "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
             "resolved_by": self.resolved_by,
         }

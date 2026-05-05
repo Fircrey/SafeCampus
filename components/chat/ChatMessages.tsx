@@ -28,19 +28,43 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
       {messages.map((msg, i) => (
         <div
           key={msg.id ?? `${msg.role}-${i}`}
-          className={`max-w-[88%] whitespace-pre-line px-4 py-3 text-sm leading-6 ${
-            msg.role === "assistant"
-              ? "bg-slate-100 text-tadeo-ink"
-              : "ml-auto bg-tadeo-blue text-white"
+          className={`flex items-start gap-2 ${
+            msg.role === "user" ? "justify-end" : ""
           }`}
         >
-          {msg.content}
+          {msg.role === "assistant" && (
+            <img
+              src="/mascot-chat.png"
+              alt="Cabito"
+              width={36}
+              height={36}
+              className="mt-1 shrink-0 rounded-full"
+            />
+          )}
+          <div
+            className={`max-w-[82%] whitespace-pre-line rounded-2xl px-4 py-3 text-sm leading-6 ${
+              msg.role === "assistant"
+                ? "bg-slate-100 text-tadeo-ink"
+                : "bg-tadeo-blue text-white"
+            }`}
+          >
+            {msg.content}
+          </div>
         </div>
       ))}
       {loading && (
-        <div className="inline-flex items-center gap-2 bg-slate-100 px-4 py-3 text-sm">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Escribiendo
+        <div className="flex items-start gap-2">
+          <img
+            src="/mascot-chat.png"
+            alt="Cabito"
+            width={36}
+            height={36}
+            className="mt-1 shrink-0 rounded-full"
+          />
+          <div className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Escribiendo
+          </div>
         </div>
       )}
       <div ref={bottomRef} />

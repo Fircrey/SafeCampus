@@ -1,7 +1,7 @@
 import {
-  Bot,
   Camera,
   ClipboardList,
+  HelpCircle,
   LayoutDashboard,
   MapPin,
   Users
@@ -20,7 +20,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/detector", label: "Detector en Vivo", icon: Camera, darkTheme: true, minRole: "admin" },
-  { href: "/chat", label: "Chat de Bienestar", icon: Bot },
+  { href: "/ayuda", label: "Centro de Ayuda", icon: HelpCircle },
   { href: "/rutas", label: "Rutas Institucionales", icon: MapPin },
   { href: "/admin/reports", label: "Panel Reportes", icon: ClipboardList, minRole: "admin" },
   { href: "/admin/users", label: "Gestión Usuarios", icon: Users, minRole: "superadmin" },
@@ -45,4 +45,6 @@ export const FLASK_API_AUTH_LOGIN = "/flask/api/auth/login";
 export const FLASK_API_AUTH_REGISTER = "/flask/api/auth/register";
 export const FLASK_API_AUTH_ME = "/flask/api/auth/me";
 export const FLASK_API_REPORTS = "/flask/api/reports";
+// Upload de fotos va DIRECTO a Flask (proxy Next.js no soporta multipart/form-data)
+export const FLASK_API_REPORTS_DIRECT = `${FLASK_URL}/api/reports`;
 export const FLASK_API_ADMIN_USERS = "/flask/api/admin/users";

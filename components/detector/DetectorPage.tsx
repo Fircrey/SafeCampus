@@ -72,11 +72,20 @@ export function DetectorPage() {
       {/* Header */}
       <div className="border-b border-cctv-border px-6 py-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-cctv-muted">
-              YOLOv8 · Tiempo real
-            </p>
-            <h1 className="text-2xl font-black">Detector en Vivo</h1>
+          <div className="flex items-center gap-3">
+            <img
+              src="/mascot-detector.png"
+              alt="Cabito Seguridad"
+              width={52}
+              height={52}
+              className="drop-shadow-[0_0_6px_rgba(34,197,94,0.4)]"
+            />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-cctv-muted">
+                YOLOv8 · Tiempo real
+              </p>
+              <h1 className="text-2xl font-black">Detector en Vivo</h1>
+            </div>
           </div>
           <DetectorControls
             active={active}

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, ImageIcon } from "lucide-react";
 import type { Report, ReportStatus } from "@/lib/types";
-import { fetchReports, updateReport } from "@/lib/flask-client";
+import { fetchReports, updateReport, getReportPhotoUrl } from "@/lib/flask-client";
 
 const STATUS_LABELS: Record<ReportStatus, string> = {
   open: "Abierto",
@@ -86,6 +86,9 @@ export function AdminReportsPage() {
                       {report.is_anonymous ? "Anónimo" : `Usuario #${report.user_id}`} —{" "}
                       {report.created_at ? new Date(report.created_at).toLocaleString() : ""}
                     </p>
+                    {report.photo_filename && (
+                      <ReportPhoto reportId={report.id} />
+                    )}
                     {report.notes && (
                       <p className="mt-2 text-xs text-slate-600 italic">Notas: {report.notes}</p>
                     )}
@@ -111,5 +114,31 @@ export function AdminReportsPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function ReportPhoto({ reportId }: { reportId: number }) {
+  const [show, setShow] = useState(false);
+
+  return (
+    <div className="mt-2">
+      {!show ? (
+        <button
+          type="button"
+          onClick={() => setShow(true)}
+          className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs font-medium text-tadeo-blue hover:bg-slate-200 transition"
+        >
+          <ImageIcon className="h-3 w-3" />
+          Ver foto adjunta
+        </button>
+      ) : (
+        <img
+          src={getReportPhotoUrl(reportId)}
+          alt="Foto del reporte"
+          className="max-h-60 rounded border border-slate-200 cursor-pointer hover:opacity-90 transition"
+          onClick={() => window.open(getReportPhotoUrl(reportId), "_blank")}
+        />
+      )}
+    </div>
   );
 }

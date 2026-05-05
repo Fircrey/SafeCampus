@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Users } from "lucide-react";
 import type { User, UserRole } from "@/lib/types";
 import { fetchUsers, updateUser } from "@/lib/flask-client";
+import { useAuth } from "@/components/auth/AuthContext";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   user: "Usuario",
@@ -18,6 +19,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
 };
 
 export function AdminUsersPage() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -87,27 +89,31 @@ export function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="px-3 py-3">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={u.role}
-                          onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
-                          className="rounded border border-slate-300 px-2 py-1 text-xs"
-                        >
-                          {Object.entries(ROLE_LABELS).map(([val, label]) => (
-                            <option key={val} value={val}>{label}</option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => handleToggleActive(u.id, u.is_active)}
-                          className={`rounded px-2 py-1 text-xs font-semibold ${
-                            u.is_active
-                              ? "bg-red-50 text-red-600 hover:bg-red-100"
-                              : "bg-green-50 text-green-600 hover:bg-green-100"
-                          }`}
-                        >
-                          {u.is_active ? "Desactivar" : "Activar"}
-                        </button>
-                      </div>
+                      {currentUser?.id === u.id ? (
+                        <span className="text-xs text-slate-400 italic">Tu cuenta</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
+                            className="rounded border border-slate-300 px-2 py-1 text-xs"
+                          >
+                            {Object.entries(ROLE_LABELS).map(([val, label]) => (
+                              <option key={val} value={val}>{label}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => handleToggleActive(u.id, u.is_active)}
+                            className={`rounded px-2 py-1 text-xs font-semibold ${
+                              u.is_active
+                                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                : "bg-green-50 text-green-600 hover:bg-green-100"
+                            }`}
+                          >
+                            {u.is_active ? "Desactivar" : "Activar"}
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

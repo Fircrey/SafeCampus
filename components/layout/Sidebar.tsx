@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, LogOut, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { SidebarLink } from "./SidebarLink";
 import { NAV_ITEMS } from "@/lib/constants";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -24,9 +24,13 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 border-b border-white/10 px-3 py-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-tadeo-yellow">
-          <ShieldCheck className="h-5 w-5 text-tadeo-blue" />
-        </div>
+        <img
+          src="/cabito-icon.png"
+          alt="Cabito"
+          width={90}
+          height={90}
+          className="shrink-0 rounded-lg"
+        />
         {!collapsed && (
           <div className="overflow-hidden">
             <p className="text-[10px] font-bold uppercase tracking-widest text-tadeo-yellow">

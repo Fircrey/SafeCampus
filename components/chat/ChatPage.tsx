@@ -119,7 +119,7 @@ export function ChatPage() {
           is_anonymous: isAnonymous,
         });
         saved = true;
-      } catch { /* ignore */ }
+      } catch (err) { console.error("[ChatPage] Error guardando reporte:", err); }
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: buildSummary(nextDraft, saved) }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Menu, ShieldCheck, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/constants";
 import { useAuth } from "@/components/auth/AuthContext";
 import { hasMinRole } from "@/lib/auth-utils";
@@ -22,9 +22,13 @@ export function MobileHeader() {
       {/* Top bar — solo visible en mobile */}
       <header className="md:hidden flex items-center justify-between bg-tadeo-blueDark px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center bg-tadeo-yellow">
-            <ShieldCheck className="h-4 w-4 text-tadeo-blue" />
-          </div>
+          <img
+            src="/cabito-icon.png"
+            alt="Cabito"
+            width={32}
+            height={32}
+            className="rounded-lg"
+          />
           <span className="text-sm font-black text-white">SafeCampus AI</span>
         </div>
         <button
@@ -48,9 +52,13 @@ export function MobileHeader() {
           <nav className="relative z-10 flex w-64 flex-col bg-tadeo-blueDark p-4">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center bg-tadeo-yellow">
-                  <ShieldCheck className="h-4 w-4 text-tadeo-blue" />
-                </div>
+                <img
+                  src="/cabito-icon.png"
+                  alt="Cabito"
+                  width={32}
+                  height={32}
+                  className="rounded-lg"
+                />
                 <span className="text-sm font-black text-white">SafeCampus AI</span>
               </div>
               <button

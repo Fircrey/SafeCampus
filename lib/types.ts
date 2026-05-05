@@ -19,6 +19,7 @@ export type Report = {
   location: string;
   immediate_risk: string;
   contact_preference: string;
+  photo_filename: string | null;
   status: ReportStatus;
   notes: string | null;
   created_at: string | null;

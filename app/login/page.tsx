@@ -3,7 +3,6 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 
 export default function LoginPage() {
@@ -32,9 +31,13 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center bg-tadeo-blue">
-            <ShieldCheck className="h-6 w-6 text-tadeo-yellow" />
-          </div>
+          <img
+            src="/cabito-icon.png"
+            alt="Cabito"
+            width={240}
+            height={240}
+            className="rounded-xl"
+          />
           <h1 className="text-2xl font-black text-tadeo-ink">SafeCampus AI</h1>
           <p className="text-sm text-slate-500">Inicia sesión para continuar</p>
         </div>

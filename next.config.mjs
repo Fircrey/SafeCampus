@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    unoptimized: true
+  },
+  serverExternalPackages: [],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb"
+    }
+  },
   async rewrites() {
     return [
       {

@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     document.cookie = "token=; path=/; max-age=0";
     setToken(null);
     setUser(null);
+    window.location.href = "/login";
   }, []);
 
   return (
