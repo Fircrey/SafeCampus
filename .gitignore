@@ -7,12 +7,18 @@ dist
 coverage
 *.log
 
+# Claude Code — config compartida SÍ va al repo, settings personales no
+.claude/settings.local.json
+
 # Python / Flask backend
 __pycache__/
 *.pyc
 *.pyo
 backend/models/*.pt
 backend/.env
+backend/.venv/
 backend/dataset/
 backend/uploads/
+best.pt
+best.pt.zip
 tsconfig.tsbuildinfo
