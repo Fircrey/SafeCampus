@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
@@ -12,6 +12,21 @@ export function MobileHeader() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();
+
+  // Lock body scroll + Escape to close
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+      const handleKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setOpen(false);
+      };
+      document.addEventListener("keydown", handleKey);
+      return () => {
+        document.body.style.overflow = "";
+        document.removeEventListener("keydown", handleKey);
+      };
+    }
+  }, [open]);
 
   const visibleItems = NAV_ITEMS.filter(
     (item) => !item.minRole || hasMinRole(user?.role, item.minRole)
@@ -42,11 +57,14 @@ export function MobileHeader() {
 
       {/* Drawer overlay */}
       {open && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
+        <div className="md:hidden fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="Menú de navegación">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/60"
             onClick={() => setOpen(false)}
+            role="button"
+            tabIndex={-1}
+            aria-label="Cerrar menú"
           />
           {/* Panel */}
           <nav className="relative z-10 flex w-64 flex-col bg-tadeo-blueDark p-4">

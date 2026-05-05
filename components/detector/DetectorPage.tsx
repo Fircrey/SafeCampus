@@ -112,6 +112,18 @@ export function DetectorPage() {
           <AlertBanner alert={activeAlert} onDismiss={dismissAlert} />
         )}
 
+        {/* Connection status indicator */}
+        {status === "connecting" && (
+          <p className="animate-pulse text-center text-xs text-yellow-400">
+            Conectando con el servidor de detección...
+          </p>
+        )}
+        {status === "offline" && !active && !error && (
+          <p className="text-center text-xs text-cctv-muted">
+            Servidor fuera de línea. Asegúrate de que Flask está ejecutándose en localhost:5000.
+          </p>
+        )}
+
         {/* Video feed — solo si activo Y Flask responde */}
         <VideoFeed active={active && status === "online"} status={status} />
 

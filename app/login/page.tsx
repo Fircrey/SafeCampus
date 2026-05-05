@@ -34,15 +34,13 @@ export default function LoginPage() {
           <img
             src="/cabito-icon.png"
             alt="Cabito"
-            width={240}
-            height={240}
-            className="rounded-xl"
+            className="h-32 w-32 rounded-xl sm:h-60 sm:w-60"
           />
           <h1 className="text-2xl font-black text-tadeo-ink">SafeCampus AI</h1>
           <p className="text-sm text-slate-500">Inicia sesión para continuar</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 shadow-panel">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-xl bg-white p-6 shadow-panel">
           {error && (
             <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
           )}
@@ -78,7 +76,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded bg-tadeo-blue py-2.5 text-sm font-bold text-white transition hover:bg-tadeo-blueDark disabled:opacity-50"
+            className="focus-ring w-full rounded bg-tadeo-blue py-2.5 text-sm font-bold text-white transition hover:bg-tadeo-blueDark disabled:opacity-50"
           >
             {loading ? "Ingresando..." : "Iniciar Sesión"}
           </button>

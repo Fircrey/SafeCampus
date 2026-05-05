@@ -27,9 +27,7 @@ export function Sidebar() {
         <img
           src="/cabito-icon.png"
           alt="Cabito"
-          width={90}
-          height={90}
-          className="shrink-0 rounded-lg"
+          className={`shrink-0 rounded-lg transition-all duration-300 ${collapsed ? "h-10 w-10" : "h-[72px] w-[72px]"}`}
         />
         {!collapsed && (
           <div className="overflow-hidden">

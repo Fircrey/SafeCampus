@@ -24,7 +24,7 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
   }, [messages, loading]);
 
   return (
-    <div ref={containerRef} className="h-[480px] space-y-3 overflow-y-auto p-5">
+    <div ref={containerRef} className="h-[min(480px,50vh)] min-h-[250px] space-y-3 overflow-y-auto p-5">
       {messages.map((msg, i) => (
         <div
           key={msg.id ?? `${msg.role}-${i}`}
