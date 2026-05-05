@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+backend/.venv/
+backend/__pycache__/
+backend/uploads/
+**/__pycache__/
+*.pyc
+best.pt
+best.pt.zip
+.env
+.env.local
+.env.production
+.env.*.local
+*.log
+.DS_Store
+Thumbs.db
