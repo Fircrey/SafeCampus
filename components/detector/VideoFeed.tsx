@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FLASK_VIDEO_FEED } from "@/lib/constants";
 import { useAuth } from "@/components/auth/AuthContext";
 import type { DetectorStatus } from "@/lib/types";
@@ -13,6 +13,10 @@ interface VideoFeedProps {
 export function VideoFeed({ active, status }: VideoFeedProps) {
   const [imgError, setImgError] = useState(false);
   const { token } = useAuth();
+
+  useEffect(() => {
+    if (active) setImgError(false);
+  }, [active]);
   const videoUrl = token ? `${FLASK_VIDEO_FEED}?token=${token}` : FLASK_VIDEO_FEED;
 
   return (
@@ -46,7 +50,7 @@ export function VideoFeed({ active, status }: VideoFeedProps) {
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full border-2 border-cctv-border">
               <div className="h-8 w-8 rounded-full bg-cctv-muted opacity-40" />
             </div>
-            <p className="text-sm font-semibold text-cctv-muted">Camara detenida</p>
+            <p className="text-sm font-semibold text-cctv-muted">Cámara detenida</p>
             <p className="mt-1 text-xs text-cctv-muted/60">
               Pulsa Iniciar para activar el detector
             </p>
@@ -80,7 +84,7 @@ export function VideoFeed({ active, status }: VideoFeedProps) {
                 : "bg-cctv-muted/20 text-cctv-muted"
             }`}
           >
-            {status === "online" ? "EN LINEA" : "FUERA DE LINEA"}
+            {status === "online" ? "EN LÍNEA" : "FUERA DE LÍNEA"}
           </span>
         </div>
       </div>

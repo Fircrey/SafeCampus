@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, Camera, X } from "lucide-react";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "@/lib/types";
 import { createReportWithPhoto } from "@/lib/flask-client";
 import { ChatInput } from "./ChatInput";
@@ -49,6 +49,12 @@ export function ReportPage() {
   const [finished, setFinished] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
   const [waitingForContact, setWaitingForContact] = useState(false);
   const [waitingForPhoto, setWaitingForPhoto] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -200,6 +206,9 @@ export function ReportPage() {
         <div className="overflow-hidden bg-white shadow-panel">
           {/* Header */}
           <div className="border-b border-slate-200 p-5">
+            <a href="/ayuda" className="mb-2 inline-block text-xs text-slate-400 hover:text-tadeo-blue">
+              &larr; Centro de Ayuda
+            </a>
             <div className="flex items-center gap-3">
               <img
                 src="/mascot-chat.png"

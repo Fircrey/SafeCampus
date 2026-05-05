@@ -34,6 +34,16 @@ export function ChatInput({
         placeholder={reportMode ? "Responde la pregunta del reporte..." : "Escribe aquí..."}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            if (reportMode) {
+              onReportAnswer?.();
+            } else {
+              e.currentTarget.form?.requestSubmit();
+            }
+          }
+        }}
         disabled={disabled}
       />
       <button

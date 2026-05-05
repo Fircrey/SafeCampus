@@ -32,6 +32,7 @@ export function BienestarPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: next })
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setMessages([
         ...next,
@@ -67,6 +68,9 @@ export function BienestarPage() {
         <div className="overflow-hidden bg-white shadow-panel">
           {/* Header */}
           <div className="border-b border-slate-200 p-5">
+            <a href="/ayuda" className="mb-2 inline-block text-xs text-slate-400 hover:text-tadeo-blue">
+              &larr; Centro de Ayuda
+            </a>
             <div className="flex items-center gap-3">
               <img
                 src="/mascot-chat.png"
@@ -91,7 +95,7 @@ export function BienestarPage() {
 
           {/* Controls */}
           <div className="space-y-3 border-t border-slate-200 p-5">
-            <QuickPrompts onSelect={(p) => void sendMessage(p)} />
+            {messages.length <= 1 && <QuickPrompts onSelect={(p) => void sendMessage(p)} />}
             <ChatInput
               value={input}
               onChange={setInput}

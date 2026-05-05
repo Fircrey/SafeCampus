@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { FLASK_URL } from "@/lib/constants";
+import { useAuth } from "@/components/auth/AuthContext";
 import type {
   DetectorAlert,
   DetectorLogEntry,
@@ -22,6 +23,7 @@ interface UseDetectorSocketOptions {
 }
 
 export function useDetectorSocket({ onAlert }: UseDetectorSocketOptions = {}) {
+  const { token } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onAlertRef = useRef(onAlert);
@@ -41,7 +43,8 @@ export function useDetectorSocket({ onAlert }: UseDetectorSocketOptions = {}) {
     const socket = io(FLASK_URL, {
       transports: ["websocket"],
       reconnectionAttempts: 5,
-      reconnectionDelay: 2000
+      reconnectionDelay: 2000,
+      query: { token: token || "" },
     });
     socketRef.current = socket;
 
@@ -88,7 +91,7 @@ export function useDetectorSocket({ onAlert }: UseDetectorSocketOptions = {}) {
       if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
       socket.disconnect();
     };
-  }, []);
+  }, [token]);
 
   const clearLog = useCallback(() => {
     setLog([]);

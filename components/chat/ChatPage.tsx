@@ -53,6 +53,7 @@ export function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: next })
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setMessages([
         ...next,
@@ -156,7 +157,7 @@ export function ChatPage() {
                 Paso {reportStep + 1} de {REPORT_QUESTIONS.length} — Reporte guiado
               </p>
             )}
-            <QuickPrompts onSelect={(p) => void sendMessage(p)} />
+            {messages.length <= 1 && <QuickPrompts onSelect={(p) => void sendMessage(p)} />}
             <ChatInput
               value={input}
               onChange={setInput}
@@ -165,7 +166,7 @@ export function ChatPage() {
               reportMode={reportMode}
               disabled={loading}
             />
-            <ReportFlow onStart={startReport} disabled={loading} />
+            {!reportMode && <ReportFlow onStart={startReport} disabled={loading} />}
           </div>
         </div>
       </div>

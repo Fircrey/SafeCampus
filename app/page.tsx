@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   Bot,
   Camera,
+  HelpCircle,
   MapPin,
   Zap
 } from "lucide-react";
@@ -10,11 +11,11 @@ import { StatusCard } from "@/components/shared/StatusCard";
 
 const quickLinks = [
   {
-    href: "/detector",
-    icon: Camera,
-    label: "Detector en Vivo",
-    description: "Feed YOLO en tiempo real desde webcam.",
-    accent: "bg-cctv-red"
+    href: "/ayuda",
+    icon: HelpCircle,
+    label: "Centro de Ayuda",
+    description: "Bienestar emocional, reportes guiados y orientación.",
+    accent: "bg-tadeo-blue"
   },
   {
     href: "/chat",

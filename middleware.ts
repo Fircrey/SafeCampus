@@ -25,6 +25,7 @@ const ROLE_LEVEL: Record<string, number> = {
 
 // Routes and their minimum required role
 const PROTECTED_ROUTES: { prefix: string; minRole: UserRole }[] = [
+  { prefix: "/admin/users", minRole: "superadmin" },
   { prefix: "/admin", minRole: "admin" },
   { prefix: "/detector", minRole: "admin" },
 ];
@@ -32,8 +33,14 @@ const PROTECTED_ROUTES: { prefix: string; minRole: UserRole }[] = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public paths
+  // Allow public paths (redirect to dashboard if already authenticated)
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+    const token = request.cookies.get("token")?.value;
+    if (token) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
     return NextResponse.next();
   }
 

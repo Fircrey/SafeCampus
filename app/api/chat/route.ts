@@ -48,10 +48,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const data = await response.json();
-  const reply =
-    data?.choices?.[0]?.message?.content ||
-    "No pude generar una respuesta. Intenta de nuevo.";
-
-  return NextResponse.json({ reply });
+  try {
+    const data = await response.json();
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "No pude generar una respuesta. Intenta de nuevo.";
+    return NextResponse.json({ reply });
+  } catch {
+    return NextResponse.json(
+      { reply: "Error procesando la respuesta del asistente. Intenta de nuevo." },
+      { status: 502 }
+    );
+  }
 }

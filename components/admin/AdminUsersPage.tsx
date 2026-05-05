@@ -22,11 +22,12 @@ export function AdminUsersPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers()
       .then(setUsers)
-      .catch(() => {})
+      .catch(() => setError("No se pudieron cargar los usuarios. Verifica la conexión con el servidor."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -34,15 +35,22 @@ export function AdminUsersPage() {
     try {
       const updated = await updateUser(id, { role });
       setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
-    } catch { /* ignore */ }
+    } catch { setError("Error al cambiar el rol. Intenta de nuevo."); }
   }
 
   async function handleToggleActive(id: number, isActive: boolean) {
     try {
       const updated = await updateUser(id, { is_active: !isActive });
       setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
-    } catch { /* ignore */ }
+    } catch { setError("Error al cambiar el estado. Intenta de nuevo."); }
   }
+
+  useEffect(() => {
+    if (error) {
+      const t = setTimeout(() => setError(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [error]);
 
   return (
     <main className="min-h-screen p-6">
@@ -60,6 +68,12 @@ export function AdminUsersPage() {
             <h1 className="text-xl font-black text-tadeo-ink">Gestión de Usuarios</h1>
           </div>
         </div>
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         {loading ? (
           <p className="text-sm text-slate-500">Cargando usuarios...</p>
@@ -100,7 +114,8 @@ export function AdminUsersPage() {
                           <select
                             value={u.role}
                             onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
-                            className="rounded border border-slate-300 px-2 py-1 text-xs"
+                            aria-label={`Cambiar rol de ${u.name}`}
+                            className="focus-ring rounded border border-slate-300 px-2 py-1 text-xs"
                           >
                             {Object.entries(ROLE_LABELS).map(([val, label]) => (
                               <option key={val} value={val}>{label}</option>

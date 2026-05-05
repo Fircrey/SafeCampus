@@ -23,11 +23,12 @@ export function AdminReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ReportStatus | "all">("all");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchReports()
       .then(setReports)
-      .catch(() => {})
+      .catch(() => setError("No se pudieron cargar los reportes. Verifica la conexión con el servidor."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,8 +36,15 @@ export function AdminReportsPage() {
     try {
       const updated = await updateReport(id, { status });
       setReports((prev) => prev.map((r) => (r.id === id ? updated : r)));
-    } catch { /* ignore */ }
+    } catch { setError("Error al actualizar el estado. Intenta de nuevo."); }
   }
+
+  useEffect(() => {
+    if (error) {
+      const t = setTimeout(() => setError(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [error]);
 
   const filtered = filter === "all" ? reports : reports.filter((r) => r.status === filter);
 
@@ -56,6 +64,12 @@ export function AdminReportsPage() {
             <h1 className="text-xl font-black text-tadeo-ink">Panel de Reportes</h1>
           </div>
         </div>
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         {/* Filters */}
         <div className="mb-4 flex flex-wrap gap-2">
@@ -104,7 +118,8 @@ export function AdminReportsPage() {
                     <select
                       value={report.status}
                       onChange={(e) => handleStatusChange(report.id, e.target.value as ReportStatus)}
-                      className="rounded border border-slate-300 px-2 py-1 text-xs"
+                      aria-label={`Cambiar estado del reporte ${report.id}`}
+                      className="focus-ring rounded border border-slate-300 px-2 py-1 text-xs"
                     >
                       {Object.entries(STATUS_LABELS).map(([val, label]) => (
                         <option key={val} value={val}>{label}</option>
