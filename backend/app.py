@@ -20,9 +20,9 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "cambiar-esta-clave")
 try:
-    CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.65"))
+    CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.40"))
 except (TypeError, ValueError):
-    CONFIDENCE_THRESHOLD = 0.65
+    CONFIDENCE_THRESHOLD = 0.40
 def _safe_int(env_var, default):
     try:
         return int(os.getenv(env_var, str(default)))
@@ -116,6 +116,7 @@ camera = None
 _stop_event = threading.Event()
 _stop_event.set()  # Inicialmente detenido
 lock = threading.Lock()
+_diagnostic_done = False
 
 
 # ------------------------------------
@@ -181,6 +182,9 @@ def load_model():
         log.info("Cargando modelo desde %s ...", MODEL_PATH)
         model = YOLO(MODEL_PATH, task="detect")
         log.info("Modelo cargado correctamente")
+        log.info("Modelo clases: %s", model.names)
+        log.info("Confidence threshold: %.2f", CONFIDENCE_THRESHOLD)
+        log.info("Weapon labels esperados: %s", WEAPON_LABELS)
         return True
 
     except Exception as e:
@@ -388,8 +392,31 @@ def generate_frames():
             # Solo correr YOLO cada N frames para reducir carga
             if frame_count % FRAME_SKIP == 0:
                 try:
-                    frame_yolo = cv2.resize(frame, (640, 480))
-                    results = model(frame_yolo, conf=CONFIDENCE_THRESHOLD, imgsz=640, verbose=False)
+                    global _diagnostic_done
+                    results = model(frame, conf=CONFIDENCE_THRESHOLD, imgsz=640, verbose=False)
+
+                    # Diagnostico one-shot: primera inferencia con threshold minimo
+                    if not _diagnostic_done:
+                        _diagnostic_done = True
+                        diag_results = model(frame, conf=0.10, imgsz=640, verbose=False)
+                        all_boxes = sum(len(r.boxes) for r in diag_results)
+                        if all_boxes > 0:
+                            all_labels = [f"{r.names[int(box.cls[0])]}:{float(box.conf[0]):.2f}"
+                                          for r in diag_results for box in r.boxes]
+                            log.warning("DIAG primera inferencia (conf=0.10): %d detecciones: %s", all_boxes, all_labels[:10])
+                        else:
+                            log.warning("DIAG primera inferencia (conf=0.10): 0 detecciones en este frame")
+
+                    # Logging periodico cada ~10 inferencias
+                    if frame_count % (FRAME_SKIP * 10) == 0:
+                        total_boxes = sum(len(r.boxes) for r in results)
+                        if total_boxes > 0:
+                            labels_found = [f"{r.names[int(box.cls[0])]}:{float(box.conf[0]):.2f}"
+                                            for r in results for box in r.boxes]
+                            log.debug("Frame #%d: %d detecciones [%s]", frame_count, total_boxes, ", ".join(labels_found))
+                        else:
+                            log.debug("Frame #%d: sin detecciones", frame_count)
+
                     new_detections, events = _process_detections(results, alert_state)
                     for event_name, event_data in events:
                         socketio.emit(event_name, event_data)
@@ -431,6 +458,11 @@ def generate_frames():
 # ------------------------------------
 # RUTAS FLASK
 # ------------------------------------
+@app.before_request
+def log_request():
+    log.debug(">> %s %s [from %s]", request.method, request.path, request.remote_addr)
+
+
 @app.route("/")
 def index():
     return jsonify({"status": "ok", "service": "SafeCampus AI - Flask Backend"})

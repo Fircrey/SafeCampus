@@ -34,7 +34,7 @@ export default function LoginPage() {
           <img
             src="/cabito-icon.png"
             alt="Cabito"
-            className="h-32 w-32 rounded-xl sm:h-60 sm:w-60"
+            className="max-h-32 max-w-32 rounded-xl object-contain sm:max-h-60 sm:max-w-60"
           />
           <h1 className="text-2xl font-black text-tadeo-ink">SafeCampus AI</h1>
           <p className="text-sm text-slate-500">Inicia sesión para continuar</p>

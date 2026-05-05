@@ -124,8 +124,8 @@ export function DetectorPage() {
           </p>
         )}
 
-        {/* Video feed — solo si activo Y Flask responde */}
-        <VideoFeed active={active && status === "online"} status={status} />
+        {/* Video feed — activo si el usuario inicio la deteccion */}
+        <VideoFeed active={active} status={status} />
 
         {/* Stats */}
         <StatsGrid stats={stats} />
