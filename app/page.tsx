@@ -39,18 +39,27 @@ export default function DashboardPage() {
       <section className="overflow-hidden bg-tadeo-blue text-white">
         <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-[1fr_auto]">
-            <div>
-              <p className="mb-3 inline-flex items-center gap-2 bg-tadeo-yellow px-3 py-1 text-xs font-black uppercase tracking-widest text-tadeo-blue">
-                <Zap className="h-3 w-3" />
-                Centro de monitoreo
-              </p>
-              <h1 className="text-4xl font-black leading-tight sm:text-5xl">
-                Seguridad, convivencia y<br />bienestar con IA responsable.
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-100">
-                Plataforma unificada para campus universitario: detección de armas en tiempo real,
-                chatbot de apoyo emocional y rutas institucionales.
-              </p>
+            <div className="flex items-center gap-5">
+              <img
+                src="/mascot-dashboard.png"
+                alt="Cabito Dashboard"
+                width={90}
+                height={90}
+                className="hidden shrink-0 drop-shadow-lg sm:block"
+              />
+              <div>
+                <p className="mb-3 inline-flex items-center gap-2 bg-tadeo-yellow px-3 py-1 text-xs font-black uppercase tracking-widest text-tadeo-blue">
+                  <Zap className="h-3 w-3" />
+                  Centro de monitoreo
+                </p>
+                <h1 className="text-4xl font-black leading-tight sm:text-5xl">
+                  Seguridad, convivencia y<br />bienestar con IA responsable.
+                </h1>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-100">
+                  Plataforma unificada para campus universitario: detección de armas en tiempo real,
+                  chatbot de apoyo emocional y rutas institucionales.
+                </p>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3 self-center">
               <DashboardStats />

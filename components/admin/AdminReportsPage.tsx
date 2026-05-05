@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClipboardList, ImageIcon } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 import type { Report, ReportStatus } from "@/lib/types";
 import { fetchReports, updateReport, getReportPhotoUrl } from "@/lib/flask-client";
 
@@ -44,9 +44,13 @@ export function AdminReportsPage() {
     <main className="min-h-screen p-6">
       <div className="mx-auto max-w-5xl">
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center bg-tadeo-blue text-white">
-            <ClipboardList className="h-5 w-5" />
-          </div>
+          <img
+            src="/mascot-admin.png"
+            alt="Cabito Admin"
+            width={48}
+            height={48}
+            className="shrink-0 drop-shadow-md"
+          />
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-tadeo-blue">Admin</p>
             <h1 className="text-xl font-black text-tadeo-ink">Panel de Reportes</h1>

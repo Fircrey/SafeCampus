@@ -9,7 +9,14 @@ export default function AyudaHub() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-3xl px-6 py-12">
-        <div className="mb-8 text-center">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <img
+            src="/mascot-ayuda.png"
+            alt="Cabito Ayuda"
+            width={80}
+            height={80}
+            className="mb-3 drop-shadow-md"
+          />
           <p className="text-xs font-bold uppercase tracking-widest text-tadeo-blue">
             SafeCampus AI
           </p>
