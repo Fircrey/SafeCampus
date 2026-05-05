@@ -55,10 +55,21 @@ def create_report():
         photo_name = data.get("photo_name", "photo.jpg")
         ext = photo_name.rsplit(".", 1)[-1].lower() if "." in photo_name else "jpg"
         if ext in ALLOWED_EXTENSIONS:
+            try:
+                decoded = base64.b64decode(photo_b64)
+            except Exception:
+                return jsonify({"error": "Foto base64 invalida"}), 400
+            # Validate magic bytes (JPEG, PNG, WebP)
+            if not (decoded[:2] == b'\xff\xd8'
+                    or decoded[:8] == b'\x89PNG\r\n\x1a\n'
+                    or (decoded[:4] == b'RIFF' and len(decoded) > 12 and decoded[8:12] == b'WEBP')):
+                return jsonify({"error": "Archivo no es una imagen valida"}), 400
+            if len(decoded) > 10 * 1024 * 1024:
+                return jsonify({"error": "Foto excede el tamano maximo (10 MB)"}), 400
             safe_name = f"{uuid.uuid4().hex}_{secure_filename(photo_name)}"
             os.makedirs(UPLOADS_DIR, exist_ok=True)
             with open(os.path.join(UPLOADS_DIR, safe_name), "wb") as f:
-                f.write(base64.b64decode(photo_b64))
+                f.write(decoded)
             photo_filename = safe_name
 
     report = Report(
@@ -103,7 +114,9 @@ def get_report_photo(report_id):
     if user.role not in ("admin", "superadmin") and report.user_id != user.id:
         return jsonify({"error": "Acceso denegado"}), 403
 
-    return send_from_directory(UPLOADS_DIR, report.photo_filename)
+    response = send_from_directory(UPLOADS_DIR, report.photo_filename)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @reports_bp.route("", methods=["GET"])
@@ -151,6 +164,9 @@ def update_report(report_id):
         if data["status"] == "resolved":
             report.resolved_at = datetime.now(timezone.utc)
             report.resolved_by = request.current_user.id
+        elif data["status"] in ("open", "reviewing"):
+            report.resolved_at = None
+            report.resolved_by = None
 
     if "notes" in data:
         report.notes = data["notes"]

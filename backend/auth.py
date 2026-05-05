@@ -1,7 +1,10 @@
 import os
+import re
 import warnings
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from functools import wraps
+import time as _time
 
 import bcrypt
 import jwt
@@ -14,8 +17,21 @@ from models import db, User
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
+EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+
+# Rate limiting (in-memory)
+_login_attempts: dict[str, list[float]] = defaultdict(list)
+_MAX_LOGIN_ATTEMPTS = 5
+_LOGIN_WINDOW_SECONDS = 300
+
 JWT_SECRET = os.getenv("JWT_SECRET", "safecampus-dev-jwt-secret-key-2026")
 JWT_EXPIRATION_HOURS = 24
+
+if JWT_SECRET == "safecampus-dev-jwt-secret-key-2026":
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "SEGURIDAD: JWT_SECRET usa el valor por defecto. Configure JWT_SECRET en .env para produccion."
+    )
 
 
 def _hash_password(password: str) -> str:
@@ -102,6 +118,12 @@ def register():
     if not email or not name or len(password) < 6:
         return jsonify({"error": "Email, nombre y password (min 6 chars) son requeridos"}), 400
 
+    if not EMAIL_REGEX.match(email):
+        return jsonify({"error": "Formato de email invalido"}), 400
+
+    if len(name) > 255:
+        return jsonify({"error": "Nombre demasiado largo (max 255 caracteres)"}), 400
+
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "Email ya registrado"}), 409
 
@@ -127,8 +149,16 @@ def login():
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
 
+    # Rate limiting
+    attempts = _login_attempts[email]
+    now = _time.time()
+    attempts[:] = [t for t in attempts if now - t < _LOGIN_WINDOW_SECONDS]
+    if len(attempts) >= _MAX_LOGIN_ATTEMPTS:
+        return jsonify({"error": "Demasiados intentos. Intente en 5 minutos."}), 429
+
     user = User.query.filter_by(email=email).first()
     if user is None or not _check_password(password, user.password_hash):
+        _login_attempts[email].append(now)
         return jsonify({"error": "Credenciales incorrectas"}), 401
 
     if not user.is_active:

@@ -62,4 +62,5 @@ class Report(db.Model):
             "photo_filename": self.photo_filename,
             "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
             "resolved_by": self.resolved_by,
+            "resolver_name": self.resolver.name if self.resolver else None,
         }

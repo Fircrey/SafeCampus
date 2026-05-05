@@ -23,12 +23,18 @@ try:
     CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.65"))
 except (TypeError, ValueError):
     CONFIDENCE_THRESHOLD = 0.65
-MAX_HISTORY = int(os.getenv("MAX_HISTORY", "50"))
-CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "0"))
-FRAME_SKIP = int(os.getenv("FRAME_SKIP", "3"))
-ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "10"))
-CLEAN_FRAMES_TO_CLEAR = int(os.getenv("CLEAN_FRAMES_TO_CLEAR", "20"))
-TARGET_FPS = int(os.getenv("TARGET_FPS", "30"))
+def _safe_int(env_var, default):
+    try:
+        return int(os.getenv(env_var, str(default)))
+    except (TypeError, ValueError):
+        return default
+
+MAX_HISTORY = _safe_int("MAX_HISTORY", 50)
+CAMERA_INDEX = _safe_int("CAMERA_INDEX", 0)
+FRAME_SKIP = _safe_int("FRAME_SKIP", 3)
+ALERT_COOLDOWN = _safe_int("ALERT_COOLDOWN", 10)
+CLEAN_FRAMES_TO_CLEAR = _safe_int("CLEAN_FRAMES_TO_CLEAR", 20)
+TARGET_FPS = _safe_int("TARGET_FPS", 30)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://safecampus:safecampus123@localhost:5433/safecampus")
@@ -52,6 +58,7 @@ log = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB max request
 CORS(app, origins=["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"],
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
@@ -98,7 +105,8 @@ with app.app_context():
         )
         db.session.add(admin_user)
         db.session.commit()
-        log.info("Superadmin creado: %s / admin123", admin_email)
+        log.info("Superadmin creado: %s (password por defecto)", admin_email)
+        log.warning("SEGURIDAD: Cambia el password del superadmin en produccion")
 
 # ------------------------------------
 # ESTADO GLOBAL
@@ -348,7 +356,13 @@ def generate_frames():
         while not _stop_event.is_set():
             loop_start = time.time()
 
-            success, frame = camera.read()
+            try:
+                cam_ref = camera
+                if cam_ref is None:
+                    break
+                success, frame = cam_ref.read()
+            except (AttributeError, cv2.error):
+                break
 
             if not success or frame is None:
                 retry_count += 1
@@ -427,7 +441,10 @@ def video_feed():
     # Auth via query param (img tags can't send headers)
     token = request.args.get("token", "")
     payload = _decode_token(token)
-    if not payload or payload.get("role") not in ("admin", "superadmin"):
+    if not payload:
+        return jsonify({"error": "Acceso denegado"}), 403
+    user = db.session.get(User, int(payload["sub"]))
+    if user is None or not user.is_active or user.role not in ("admin", "superadmin"):
         return jsonify({"error": "Acceso denegado"}), 403
     return Response(
         generate_frames(),
@@ -503,7 +520,15 @@ def get_stats():
 # ------------------------------------
 @socketio.on("connect")
 def handle_connect():
-    log.info("Cliente conectado")
+    token = request.args.get("token", "")
+    payload = _decode_token(token)
+    if not payload:
+        log.warning("WebSocket connection rejected: no valid token")
+        return False
+    user = db.session.get(User, int(payload["sub"]))
+    if user is None or not user.is_active:
+        return False
+    log.info("Cliente conectado: %s", payload.get("email", "unknown"))
     stats = tracker.get_stats()
     emit("stats_update", stats)
     with lock:
