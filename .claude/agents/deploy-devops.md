@@ -82,7 +82,7 @@ jobs:
 
 ### Vercel (frontend)
 ```
-NEXT_PUBLIC_API_URL=https://safecampus-backend.up.railway.app
+NEXT_PUBLIC_FLASK_URL=https://safecampus-backend.up.railway.app
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
 ROBOFLOW_API_KEY=...

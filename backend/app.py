@@ -468,6 +468,26 @@ def index():
     return jsonify({"status": "ok", "service": "SafeCampus AI - Flask Backend"})
 
 
+@app.route("/health")
+def health():
+    db_ok = False
+    try:
+        db.session.execute(db.text("SELECT 1"))
+        db_ok = True
+    except Exception:
+        pass
+
+    return jsonify({
+        "status": "ok" if db_ok else "degraded",
+        "service": "safecampus-backend",
+        "checks": {
+            "database": db_ok,
+            "model_loaded": model is not None,
+            "detector_running": not _stop_event.is_set(),
+        },
+    }), (200 if db_ok else 503)
+
+
 @app.route("/video_feed")
 def video_feed():
     # Auth via query param (img tags can't send headers)

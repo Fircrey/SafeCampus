@@ -16,7 +16,7 @@ Checklist antes de pushear o desplegar SafeCampus.
 
 ### Frontend (Vercel)
 - [ ] `OPENAI_API_KEY`, `ROBOFLOW_API_KEY`, `OPENAI_MODEL`, `ROBOFLOW_MODEL_ID` seteadas en Vercel
-- [ ] `NEXT_PUBLIC_API_URL` apuntando al host del Flask backend (NO a Vercel)
+- [ ] `NEXT_PUBLIC_FLASK_URL` apuntando al host del Flask backend (NO a Vercel)
 - [ ] `next build` local pasa
 
 ### Backend (Railway / Render / Fly — NO Vercel)

@@ -56,6 +56,10 @@ Dos backends conviven:
 - **No hay CI/CD** — `.github/workflows/` no existe
 - Deploy: README sugiere Vercel (frontend); backend Flask sin pipeline definido
 
+## Variable env clave para conectar FE↔BE
+
+`NEXT_PUBLIC_FLASK_URL=http://localhost:5000` — el frontend la usa para llamar al backend Flask y conectar Socket.IO. En deploy apuntar al host del Flask (no Vercel).
+
 ## Comandos
 
 ```bash

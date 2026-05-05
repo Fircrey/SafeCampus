@@ -44,7 +44,7 @@ middleware.ts               # Auth gate global (LEER antes de tocar rutas)
 ### Llamadas al backend Flask
 ```ts
 const token = localStorage.getItem("token");
-const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reports`, {
+const res = await fetch(`${process.env.NEXT_PUBLIC_FLASK_URL}/reports`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -61,7 +61,7 @@ if (!res.ok) {
 ### Socket.IO al detector
 ```ts
 import { io } from "socket.io-client";
-const socket = io(process.env.NEXT_PUBLIC_API_URL!, { transports: ["websocket", "polling"] });
+const socket = io(process.env.NEXT_PUBLIC_FLASK_URL!, { transports: ["websocket", "polling"] });
 socket.on("frame", (data) => { /* render bbox */ });
 socket.on("alert", (alert) => { /* mostrar toast */ });
 return () => { socket.disconnect(); };

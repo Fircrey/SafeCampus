@@ -4,6 +4,10 @@
 
 ## Flask backend (`http://localhost:5000` por defecto)
 
+### Health
+- `GET /` → `{status, service}` — ping básico
+- `GET /health` → `{status, service, checks: {database, model_loaded, detector_running}}` — 200 si DB ok, 503 si no
+
 ### Auth (`backend/auth.py`)
 - `POST /auth/register` → `{email, name, password}` → `{user, token}` | 409 si email duplicado
 - `POST /auth/login` → `{email, password}` → `{user, token}` | 401 inválido
