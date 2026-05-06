@@ -3,6 +3,7 @@ import {
   ClipboardList,
   HelpCircle,
   LayoutDashboard,
+  Map,
   MapPin,
   Users
 } from "lucide-react";
@@ -21,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/detector", label: "Detector en Vivo", icon: Camera, darkTheme: true, minRole: "admin" },
   { href: "/ayuda", label: "Centro de Ayuda", icon: HelpCircle },
+  { href: "/mapa", label: "Mapa del Campus", icon: Map },
   { href: "/rutas", label: "Rutas Institucionales", icon: MapPin },
   { href: "/admin/reports", label: "Panel Reportes", icon: ClipboardList, minRole: "admin" },
   { href: "/admin/users", label: "Gestión Usuarios", icon: Users, minRole: "superadmin" },
@@ -48,3 +50,4 @@ export const FLASK_API_REPORTS = "/flask/api/reports";
 // Upload de fotos va DIRECTO a Flask (proxy Next.js no soporta multipart/form-data)
 export const FLASK_API_REPORTS_DIRECT = `${FLASK_URL}/api/reports`;
 export const FLASK_API_ADMIN_USERS = "/flask/api/admin/users";
+export const FLASK_API_REPORTS_BY_ZONE = "/flask/api/reports/by-zone";

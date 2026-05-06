@@ -3,6 +3,7 @@ import {
   Bot,
   Camera,
   HelpCircle,
+  Map,
   MapPin,
   Zap
 } from "lucide-react";
@@ -23,6 +24,13 @@ const quickLinks = [
     label: "Chat de Bienestar",
     description: "Apoyo emocional, convivencia y reportes guiados.",
     accent: "bg-tadeo-sky"
+  },
+  {
+    href: "/mapa",
+    icon: Map,
+    label: "Mapa del Campus",
+    description: "Reporta y visualiza incidentes de seguridad por zona.",
+    accent: "bg-tadeo-yellow"
   },
   {
     href: "/rutas",
@@ -92,7 +100,7 @@ export default function DashboardPage() {
         {/* Quick links */}
         <section>
           <h2 className="mb-4 text-xl font-black text-tadeo-ink">Acceso rápido</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {quickLinks.map((item) => (
               <Link
                 key={item.href}

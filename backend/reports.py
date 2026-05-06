@@ -72,6 +72,10 @@ def create_report():
                 f.write(decoded)
             photo_filename = safe_name
 
+    zone_id = (data.get("zone_id") or "").strip() or None
+    zone_name = (data.get("zone_name") or "").strip() or None
+    priority = (data.get("priority") or "").strip() or None
+
     report = Report(
         user_id=None if is_anonymous else request.current_user.id,
         is_anonymous=is_anonymous,
@@ -80,11 +84,48 @@ def create_report():
         immediate_risk=immediate_risk,
         contact_preference=contact_pref,
         photo_filename=photo_filename,
+        zone_id=zone_id,
+        zone_name=zone_name,
+        priority=priority,
     )
     db.session.add(report)
     db.session.commit()
 
+    if zone_id:
+        try:
+            from flask import current_app
+            sio = current_app.extensions.get("socketio")
+            if sio:
+                sio.emit("new_zone_report", {
+                    "zone_id": report.zone_id,
+                    "zone_name": report.zone_name,
+                    "priority": report.priority,
+                    "status": report.status,
+                })
+        except Exception:
+            pass  # Non-critical: don't fail the request if emit fails
+
     return jsonify({"report": report.to_dict()}), 201
+
+
+@reports_bp.route("/by-zone", methods=["GET"])
+@token_required
+def reports_by_zone():
+    counts = db.session.query(
+        Report.zone_id,
+        Report.zone_name,
+        db.func.count(Report.id)
+    ).filter(
+        Report.zone_id.isnot(None),
+        Report.status.in_(["open", "reviewing"])
+    ).group_by(Report.zone_id, Report.zone_name).all()
+
+    return jsonify({
+        "zones": [
+            {"zone_id": z[0], "zone_name": z[1], "count": z[2]}
+            for z in counts
+        ]
+    })
 
 
 @reports_bp.route("/<int:report_id>/photo", methods=["GET"])

@@ -8,9 +8,11 @@ import {
   FLASK_API_AUTH_REGISTER,
   FLASK_API_AUTH_ME,
   FLASK_API_REPORTS,
-  FLASK_API_ADMIN_USERS
+  FLASK_API_ADMIN_USERS,
+  FLASK_API_REPORTS_BY_ZONE
 } from "./constants";
 import type { DetectorLogEntry, DetectorStats, User, Report } from "./types";
+import type { ZoneCount, ZoneReportPayload } from "./zone-types";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -178,6 +180,37 @@ export async function updateReport(id: number, update: { status?: string; notes?
     body: JSON.stringify(update),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json() as { report: Report };
+  return data.report;
+}
+
+// --- Zone Reports ---
+
+export async function fetchReportsByZone(): Promise<ZoneCount[]> {
+  const res = await fetch(FLASK_API_REPORTS_BY_ZONE, { headers: authHeaders() });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json() as { zones: ZoneCount[] };
+  return data.zones;
+}
+
+export async function createZoneReport(payload: ZoneReportPayload): Promise<Report> {
+  const res = await fetch(FLASK_API_REPORTS, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      type_description: `[${payload.report_type}] ${payload.title}`,
+      location: payload.zone_name,
+      immediate_risk: payload.priority,
+      contact_preference: "app",
+      zone_id: payload.zone_id,
+      zone_name: payload.zone_name,
+      priority: payload.priority,
+    }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as { error?: string }).error || `HTTP ${res.status}`);
+  }
   const data = await res.json() as { report: Report };
   return data.report;
 }

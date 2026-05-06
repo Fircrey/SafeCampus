@@ -98,7 +98,7 @@ export function AdminReportsPage() {
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-tadeo-ink">{report.type_description}</p>
                     <p className="mt-1 text-xs text-slate-500">
-                      Lugar: {report.location} | Riesgo: {report.immediate_risk}
+                      Lugar: {report.location}{report.zone_name ? ` (${report.zone_name})` : ""} | Riesgo: {report.immediate_risk}{report.priority ? ` | Prioridad: ${report.priority}` : ""}
                     </p>
                     <p className="text-xs text-slate-400">
                       {report.is_anonymous ? "Anónimo" : `Usuario #${report.user_id}`} —{" "}

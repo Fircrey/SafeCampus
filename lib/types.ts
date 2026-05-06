@@ -25,6 +25,9 @@ export type Report = {
   created_at: string | null;
   resolved_at: string | null;
   resolved_by: number | null;
+  zone_id: string | null;
+  zone_name: string | null;
+  priority: string | null;
 };
 
 export type ChatMessage = {

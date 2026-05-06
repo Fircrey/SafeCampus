@@ -15,8 +15,9 @@
 - `POST /auth/logout` (Bearer) — opcional, JWT es stateless
 
 ### Reports (`backend/reports.py`)
-- `POST /reports` (Bearer opcional) → multipart con `type_description, location, immediate_risk, contact_preference, is_anonymous, photo` → `Report`
+- `POST /reports` (Bearer) → multipart con `type_description, location, immediate_risk, contact_preference, is_anonymous, photo, zone_id?, zone_name?, priority?` → `Report`
 - `GET  /reports` (Bearer admin) → `[Report]`
+- `GET  /reports/by-zone` (Bearer) → `{zones: [{zone_id, zone_name, count}]}` — conteo de reportes abiertos/en revisión por zona
 - `PATCH /reports/<id>` (Bearer admin) → `{status, notes}` → `Report`
 - `GET  /reports/<id>/photo` (Bearer admin) → archivo binario
 
@@ -34,6 +35,7 @@
 - `frame` — `{image: base64, timestamp, detections: [...]}`
 - `alert` — `{class, confidence, x, y, width, height, timestamp}`
 - `detector_status` — `{running, model_loaded, fps}`
+- `new_zone_report` — `{zone_id, zone_name, priority, status}` — emitido al crear reporte con zona
 
 ## Next.js API routes (`http://localhost:3000/api/*`)
 

@@ -52,9 +52,19 @@ Dos backends conviven:
 - Reportes con foto persistidos en `backend/uploads/`
 - Mascota Cabito y páginas de ayuda integradas
 - 34 bugs corregidos en una pasada (commit `1aa4bd4`)
+- **Mapa interactivo** `/mapa` con 23 zonas SVG del campus (OpenStreetMap), reportes por zona, SocketIO en tiempo real
 - **No hay tests automatizados** — validación manual
 - **No hay CI/CD** — `.github/workflows/` no existe
 - Deploy: README sugiere Vercel (frontend); backend Flask sin pipeline definido
+
+## Mapa del Campus (`/mapa`)
+
+- SVG puro (sin Leaflet/Mapbox) con 23 zonas del campus UTADEO vía OpenStreetMap
+- Datos en `lib/data/utadeo-zones.json`, tipos en `lib/zone-types.ts`
+- Componentes en `components/mapa/` (CampusMap, MapSVG, ZoneList, ZoneReportForm, ZoneReportHistory)
+- Hook `hooks/useZoneReports.ts` con SocketIO para conteos en tiempo real
+- Backend: `GET /api/reports/by-zone` + campos `zone_id`, `zone_name`, `priority` en modelo Report
+- **Pendiente**: faltan módulos 7, 7A, 12, 15, 18-23, 26, 30 (no están en OpenStreetMap)
 
 ## Variable env clave para conectar FE↔BE
 
@@ -102,6 +112,8 @@ npm run build         # asegurar que Next compila
 10. `backend/uploads/` no persiste en filesystem efímero (contenedores, serverless).
 11. Dos pipelines de detección: Roboflow Cloud (Next) vs YOLO local (Flask). Pueden divergir en clases/labels.
 12. Roles enum-string libre en `users.role` — sin constraint a nivel BD.
+13. Mapa del campus tiene 23 de ~30+ módulos reales. Faltan M7, M7A, M12, M15, M18-M23, M26, M30 (no mapeados en OSM).
+14. Columnas `zone_id`, `zone_name`, `priority` en tabla `reports` requieren ALTER TABLE manual (sin Alembic).
 
 ## Reglas de Seguridad para Claude
 

@@ -41,6 +41,9 @@ class Report(db.Model):
     photo_filename = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), default="open")  # open | reviewing | resolved | false_positive
     notes = db.Column(db.Text, nullable=True)
+    zone_id = db.Column(db.String(100), nullable=True)
+    zone_name = db.Column(db.String(255), nullable=True)
+    priority = db.Column(db.String(20), nullable=True)  # alta | media | baja
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     resolved_at = db.Column(db.DateTime, nullable=True)
     resolved_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
@@ -63,4 +66,7 @@ class Report(db.Model):
             "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
             "resolved_by": self.resolved_by,
             "resolver_name": self.resolver.name if self.resolver else None,
+            "zone_id": self.zone_id,
+            "zone_name": self.zone_name,
+            "priority": self.priority,
         }
