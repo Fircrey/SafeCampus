@@ -44,6 +44,8 @@ class Report(db.Model):
     zone_id = db.Column(db.String(100), nullable=True)
     zone_name = db.Column(db.String(255), nullable=True)
     priority = db.Column(db.String(20), nullable=True)  # alta | media | baja
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     resolved_at = db.Column(db.DateTime, nullable=True)
     resolved_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
@@ -69,4 +71,6 @@ class Report(db.Model):
             "zone_id": self.zone_id,
             "zone_name": self.zone_name,
             "priority": self.priority,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
         }

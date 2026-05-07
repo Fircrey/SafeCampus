@@ -116,7 +116,7 @@ export async function createReport(report: {
   return data.report;
 }
 
-function fileToBase64(file: File): Promise<string> {
+export function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -193,6 +193,56 @@ export async function fetchReportsByZone(): Promise<ZoneCount[]> {
   return data.zones;
 }
 
+export type GeoReportPayload = {
+  zone_id: string;
+  zone_name: string;
+  report_type: string;
+  priority: "alta" | "media" | "baja";
+  title: string;
+  description: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  is_anonymous?: boolean;
+  photo?: File | null;
+};
+
+export async function createGeoReport(payload: GeoReportPayload): Promise<Report> {
+  const body: Record<string, unknown> = {
+    type_description: `[${payload.report_type}] ${payload.title}`,
+    location: payload.zone_name,
+    immediate_risk: payload.priority,
+    contact_preference: "app",
+    zone_id: payload.zone_id,
+    zone_name: payload.zone_name,
+    priority: payload.priority,
+    is_anonymous: payload.is_anonymous ?? false,
+  };
+
+  if (payload.latitude != null && payload.longitude != null) {
+    body.latitude = payload.latitude;
+    body.longitude = payload.longitude;
+  }
+
+  if (payload.photo) {
+    const photoBase64 = await fileToBase64(payload.photo);
+    body.photo_base64 = photoBase64;
+    body.photo_name = payload.photo.name;
+  }
+
+  const res = await fetch(FLASK_API_REPORTS, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as { error?: string }).error || `HTTP ${res.status}`);
+  }
+  const data = await res.json() as { report: Report };
+  return data.report;
+}
+
+/** @deprecated Use createGeoReport instead */
 export async function createZoneReport(payload: ZoneReportPayload): Promise<Report> {
   const res = await fetch(FLASK_API_REPORTS, {
     method: "POST",

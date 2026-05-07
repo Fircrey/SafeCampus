@@ -28,6 +28,8 @@ export type Report = {
   zone_id: string | null;
   zone_name: string | null;
   priority: string | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type ChatMessage = {

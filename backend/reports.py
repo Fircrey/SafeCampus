@@ -76,6 +76,20 @@ def create_report():
     zone_name = (data.get("zone_name") or "").strip() or None
     priority = (data.get("priority") or "").strip() or None
 
+    # Parse optional geolocation
+    latitude = None
+    longitude = None
+    raw_lat = data.get("latitude")
+    raw_lon = data.get("longitude")
+    if raw_lat is not None and raw_lon is not None:
+        try:
+            latitude = float(raw_lat)
+            longitude = float(raw_lon)
+            if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
+                return jsonify({"error": "Coordenadas fuera de rango"}), 400
+        except (ValueError, TypeError):
+            return jsonify({"error": "Coordenadas invalidas"}), 400
+
     report = Report(
         user_id=None if is_anonymous else request.current_user.id,
         is_anonymous=is_anonymous,
@@ -87,6 +101,8 @@ def create_report():
         zone_id=zone_id,
         zone_name=zone_name,
         priority=priority,
+        latitude=latitude,
+        longitude=longitude,
     )
     db.session.add(report)
     db.session.commit()
@@ -101,6 +117,8 @@ def create_report():
                     "zone_name": report.zone_name,
                     "priority": report.priority,
                     "status": report.status,
+                    "latitude": report.latitude,
+                    "longitude": report.longitude,
                 })
         except Exception:
             pass  # Non-critical: don't fail the request if emit fails
