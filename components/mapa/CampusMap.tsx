@@ -1,28 +1,25 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Building2,
   ClipboardList,
   FileText,
   MapPin,
   Target,
-  AlertTriangle,
 } from "lucide-react";
 import zonesGeoJson from "@/lib/data/utadeo-zones.json";
 import type { ZoneCollection, ZoneFeature } from "@/lib/zone-types";
 import { useZoneReports } from "@/hooks/useZoneReports";
 import { MapSVG } from "./MapSVG";
 import { ZoneList } from "./ZoneList";
-import { ZoneReportForm } from "./ZoneReportForm";
-import { ZoneReportHistory } from "./ZoneReportHistory";
 
 const zones = zonesGeoJson as unknown as ZoneCollection;
 
 export function CampusMapPage() {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const { zoneCounts, loading, refresh } = useZoneReports();
+  const { zoneCounts, loading } = useZoneReports();
 
   const selectedZone: ZoneFeature | null = useMemo(
     () => zones.features.find((f) => f.properties.id === selectedZoneId) ?? null,
@@ -43,11 +40,6 @@ export function CampusMapPage() {
 
   function handleSelectZone(zoneId: string) {
     setSelectedZoneId(zoneId);
-  }
-
-  function handleReportCreated() {
-    refresh();
-    setRefreshKey((k) => k + 1);
   }
 
   return (
@@ -168,14 +160,14 @@ export function CampusMapPage() {
               )}
             </section>
 
-            {/* Report form */}
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-black text-tadeo-ink">Nuevo Reporte</h2>
-                <FileText className="h-4 w-4 text-slate-400" />
-              </div>
-              <ZoneReportForm zone={selectedZone} onReportCreated={handleReportCreated} />
-            </section>
+            {/* Create report link */}
+            <Link
+              href="/reportar"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-tadeo-blue bg-tadeo-blue px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900"
+            >
+              <FileText className="h-4 w-4" />
+              Crear Reporte
+            </Link>
 
             {/* Zone list */}
             <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -191,15 +183,6 @@ export function CampusMapPage() {
                 reportCounts={countMap}
                 onSelectZone={handleSelectZone}
               />
-            </section>
-
-            {/* Report history */}
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-black text-tadeo-ink">Historial de zona</h2>
-                <AlertTriangle className="h-4 w-4 text-slate-400" />
-              </div>
-              <ZoneReportHistory zoneId={selectedZoneId} refreshKey={refreshKey} />
             </section>
           </aside>
         </div>

@@ -1,6 +1,7 @@
 import {
   Camera,
   ClipboardList,
+  FileText,
   HelpCircle,
   LayoutDashboard,
   Map,
@@ -22,6 +23,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/detector", label: "Detector en Vivo", icon: Camera, darkTheme: true, minRole: "admin" },
   { href: "/ayuda", label: "Centro de Ayuda", icon: HelpCircle },
+  { href: "/reportar", label: "Crear Reporte", icon: FileText },
   { href: "/mapa", label: "Mapa del Campus", icon: Map },
   { href: "/rutas", label: "Rutas Institucionales", icon: MapPin },
   { href: "/admin/reports", label: "Panel Reportes", icon: ClipboardList, minRole: "admin" },
