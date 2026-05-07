@@ -53,3 +53,4 @@ export const FLASK_API_REPORTS = "/flask/api/reports";
 export const FLASK_API_REPORTS_DIRECT = `${FLASK_URL}/api/reports`;
 export const FLASK_API_ADMIN_USERS = "/flask/api/admin/users";
 export const FLASK_API_REPORTS_BY_ZONE = "/flask/api/reports/by-zone";
+export const FLASK_API_HEALTH = "/flask/health";
