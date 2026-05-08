@@ -19,6 +19,29 @@ def _allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def _save_photo_from_base64(photo_b64, photo_name="photo.jpg"):
+    """Validate and save a base64-encoded photo. Returns (filename, None) on success or (None, error_response) on failure."""
+    ext = photo_name.rsplit(".", 1)[-1].lower() if "." in photo_name else "jpg"
+    if ext not in ALLOWED_EXTENSIONS:
+        return None, (jsonify({"error": "Extension de foto no permitida"}), 400)
+    try:
+        decoded = base64.b64decode(photo_b64)
+    except Exception:
+        return None, (jsonify({"error": "Foto base64 invalida"}), 400)
+    # Validate magic bytes (JPEG, PNG, WebP)
+    if not (decoded[:2] == b'\xff\xd8'
+            or decoded[:8] == b'\x89PNG\r\n\x1a\n'
+            or (decoded[:4] == b'RIFF' and len(decoded) > 12 and decoded[8:12] == b'WEBP')):
+        return None, (jsonify({"error": "Archivo no es una imagen valida"}), 400)
+    if len(decoded) > 10 * 1024 * 1024:
+        return None, (jsonify({"error": "Foto excede el tamano maximo (10 MB)"}), 400)
+    safe_name = f"{uuid.uuid4().hex}_{secure_filename(photo_name)}"
+    os.makedirs(UPLOADS_DIR, exist_ok=True)
+    with open(os.path.join(UPLOADS_DIR, safe_name), "wb") as f:
+        f.write(decoded)
+    return safe_name, None
+
+
 @reports_bp.route("", methods=["POST"])
 @token_required
 def create_report():
@@ -51,26 +74,11 @@ def create_report():
             file.save(os.path.join(UPLOADS_DIR, safe_name))
             photo_filename = safe_name
     elif isinstance(data, dict) and data.get("photo_base64"):
-        photo_b64 = data["photo_base64"]
-        photo_name = data.get("photo_name", "photo.jpg")
-        ext = photo_name.rsplit(".", 1)[-1].lower() if "." in photo_name else "jpg"
-        if ext in ALLOWED_EXTENSIONS:
-            try:
-                decoded = base64.b64decode(photo_b64)
-            except Exception:
-                return jsonify({"error": "Foto base64 invalida"}), 400
-            # Validate magic bytes (JPEG, PNG, WebP)
-            if not (decoded[:2] == b'\xff\xd8'
-                    or decoded[:8] == b'\x89PNG\r\n\x1a\n'
-                    or (decoded[:4] == b'RIFF' and len(decoded) > 12 and decoded[8:12] == b'WEBP')):
-                return jsonify({"error": "Archivo no es una imagen valida"}), 400
-            if len(decoded) > 10 * 1024 * 1024:
-                return jsonify({"error": "Foto excede el tamano maximo (10 MB)"}), 400
-            safe_name = f"{uuid.uuid4().hex}_{secure_filename(photo_name)}"
-            os.makedirs(UPLOADS_DIR, exist_ok=True)
-            with open(os.path.join(UPLOADS_DIR, safe_name), "wb") as f:
-                f.write(decoded)
-            photo_filename = safe_name
+        photo_filename, err = _save_photo_from_base64(
+            data["photo_base64"], data.get("photo_name", "photo.jpg")
+        )
+        if err:
+            return err
 
     zone_id = (data.get("zone_id") or "").strip() or None
     zone_name = (data.get("zone_name") or "").strip() or None
@@ -201,6 +209,55 @@ def get_report(report_id):
     if user.role not in ("admin", "superadmin") and report.user_id != user.id:
         return jsonify({"error": "Acceso denegado"}), 403
 
+    return jsonify({"report": report.to_dict()})
+
+
+@reports_bp.route("/<int:report_id>/enrich", methods=["PATCH"])
+@token_required
+def enrich_report(report_id):
+    report = db.session.get(Report, report_id)
+    if report is None:
+        return jsonify({"error": "Reporte no encontrado"}), 404
+
+    user = request.current_user
+    if report.user_id != user.id:
+        return jsonify({"error": "Solo el creador puede complementar este reporte"}), 403
+
+    if report.status != "open":
+        return jsonify({"error": "Solo se pueden complementar reportes abiertos"}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Body requerido"}), 400
+
+    if "priority" in data:
+        valid_priorities = ("alta", "media", "baja")
+        if data["priority"] not in valid_priorities:
+            return jsonify({"error": f"Prioridad debe ser una de: {valid_priorities}"}), 400
+        report.priority = data["priority"]
+
+    if "contact_preference" in data:
+        report.contact_preference = (data["contact_preference"] or "").strip()
+
+    if "photo_base64" in data:
+        photo_filename, err = _save_photo_from_base64(
+            data["photo_base64"], data.get("photo_name", "photo.jpg")
+        )
+        if err:
+            return err
+        report.photo_filename = photo_filename
+
+    if "is_anonymous" in data:
+        is_anon = data["is_anonymous"]
+        if isinstance(is_anon, str):
+            is_anon = is_anon.lower() in ("true", "1", "yes")
+        else:
+            is_anon = bool(is_anon)
+        report.is_anonymous = is_anon
+        if is_anon:
+            report.user_id = None
+
+    db.session.commit()
     return jsonify({"report": report.to_dict()})
 
 

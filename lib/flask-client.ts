@@ -184,6 +184,44 @@ export async function updateReport(id: number, update: { status?: string; notes?
   return data.report;
 }
 
+// --- Enrich Report ---
+
+export type EnrichReportPayload = {
+  priority?: "alta" | "media" | "baja";
+  is_anonymous?: boolean;
+  contact_preference?: string;
+  photo?: File | null;
+};
+
+export async function enrichReport(
+  reportId: number,
+  payload: EnrichReportPayload
+): Promise<Report> {
+  const body: Record<string, unknown> = {};
+
+  if (payload.priority !== undefined) body.priority = payload.priority;
+  if (payload.is_anonymous !== undefined) body.is_anonymous = payload.is_anonymous;
+  if (payload.contact_preference !== undefined) body.contact_preference = payload.contact_preference;
+
+  if (payload.photo) {
+    const photoBase64 = await fileToBase64(payload.photo);
+    body.photo_base64 = photoBase64;
+    body.photo_name = payload.photo.name;
+  }
+
+  const res = await fetch(`${FLASK_API_REPORTS}/${reportId}/enrich`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as { error?: string }).error || `HTTP ${res.status}`);
+  }
+  const data = await res.json() as { report: Report };
+  return data.report;
+}
+
 // --- Zone Reports ---
 
 export async function fetchReportsByZone(): Promise<ZoneCount[]> {
@@ -204,14 +242,16 @@ export type GeoReportPayload = {
   longitude?: number | null;
   is_anonymous?: boolean;
   photo?: File | null;
+  contact_preference?: string;
+  immediate_risk?: boolean;
 };
 
 export async function createGeoReport(payload: GeoReportPayload): Promise<Report> {
   const body: Record<string, unknown> = {
     type_description: `[${payload.report_type}] ${payload.title}`,
     location: payload.zone_name,
-    immediate_risk: payload.priority,
-    contact_preference: "app",
+    immediate_risk: payload.immediate_risk ? "si" : "no",
+    contact_preference: payload.contact_preference || "app",
     zone_id: payload.zone_id,
     zone_name: payload.zone_name,
     priority: payload.priority,

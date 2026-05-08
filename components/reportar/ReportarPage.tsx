@@ -1,23 +1,26 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FileText, CheckCircle2 } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { detectZone, isNearCampus } from "@/lib/geo-utils";
+import { detectZone, isNearCampus, getAllZones } from "@/lib/geo-utils";
 import type { ZoneDetectionResult } from "@/lib/geo-utils";
 import type { ZoneFeature } from "@/lib/zone-types";
-import { ZoneDetection } from "./ZoneDetection";
-import { ZoneSelector } from "./ZoneSelector";
+import type { Report } from "@/lib/types";
 import { ReportForm } from "./ReportForm";
+import { ReportConfirmation } from "./ReportConfirmation";
 
-export function ReportarPage() {
+interface ReportarPageProps {
+  initialZoneId?: string | null;
+}
+
+export function ReportarPage({ initialZoneId }: ReportarPageProps) {
   const geo = useGeolocation();
 
-  const [manualMode, setManualMode] = useState(false);
   const [selectedZone, setSelectedZone] = useState<ZoneFeature | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [showManualSelector, setShowManualSelector] = useState(false);
+  const [createdReport, setCreatedReport] = useState<Report | null>(null);
 
-  // Auto-detect zone when geolocation is granted
   const detection: ZoneDetectionResult | null = useMemo(() => {
     if (geo.status !== "granted" || geo.longitude === null || geo.latitude === null) return null;
     return detectZone(geo.longitude, geo.latitude);
@@ -28,40 +31,49 @@ export function ReportarPage() {
     return isNearCampus(geo.longitude, geo.latitude);
   }, [geo.latitude, geo.longitude]);
 
-  // Set selected zone from detection
   useEffect(() => {
-    if (detection && !manualMode && !selectedZone) {
+    if (initialZoneId && !selectedZone) {
+      const allZones = getAllZones();
+      const match = allZones.find((z) => z.properties.id === initialZoneId);
+      if (match) {
+        setSelectedZone(match);
+      }
+    }
+  }, [initialZoneId, selectedZone]);
+
+  useEffect(() => {
+    if (detection && !selectedZone) {
       setSelectedZone(detection.zone);
     }
-  }, [detection, manualMode, selectedZone]);
+  }, [detection, selectedZone]);
 
-  // If geo is denied/unavailable, switch to manual mode automatically
   useEffect(() => {
-    if (geo.status === "denied" || geo.status === "unavailable") {
-      setManualMode(true);
+    if (
+      (geo.status === "denied" || geo.status === "unavailable") &&
+      !selectedZone
+    ) {
+      setShowManualSelector(true);
     }
-  }, [geo.status]);
+  }, [geo.status, selectedZone]);
 
   function handleChangeZone() {
-    setManualMode(true);
+    setShowManualSelector(true);
   }
 
   function handleSelectZone(zone: ZoneFeature) {
     setSelectedZone(zone);
-    setManualMode(false);
+    setShowManualSelector(false);
   }
 
-  function handleSuccess() {
-    setSubmitted(true);
+  function handleSuccess(report: Report) {
+    setCreatedReport(report);
   }
 
   function handleNewReport() {
-    setSubmitted(false);
+    setCreatedReport(null);
+    setSelectedZone(null);
+    setShowManualSelector(false);
   }
-
-  // Show zone selector if manual mode and no zone selected, or user explicitly wants to change
-  const showSelector = manualMode && (!selectedZone || manualMode);
-  const zoneReady = selectedZone !== null;
 
   return (
     <main className="min-h-screen">
@@ -86,53 +98,40 @@ export function ReportarPage() {
       </div>
 
       <div className="mx-auto max-w-2xl px-6 py-6">
-        {submitted ? (
-          <div className="flex flex-col items-center gap-4 rounded-lg border border-green-200 bg-green-50 p-8 text-center">
-            <CheckCircle2 className="h-12 w-12 text-green-500" />
-            <div>
-              <h2 className="text-lg font-bold text-tadeo-ink">Reporte enviado</h2>
-              <p className="mt-1 text-sm text-slate-600">
-                Tu reporte ha sido registrado. El equipo de seguridad lo revisara pronto.
+        {createdReport ? (
+          <ReportConfirmation
+            report={createdReport}
+            onNewReport={handleNewReport}
+          />
+        ) : (
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-5 flex items-center gap-3 rounded-lg bg-slate-50 p-3">
+              <img
+                src="/mascot-ayuda.png"
+                alt="Cabito"
+                width={36}
+                height={36}
+                className="shrink-0 drop-shadow-sm"
+              />
+              <p className="text-sm text-slate-600">
+                Completa los campos esenciales y envia tu reporte. Despues podras complementarlo con foto, prioridad y mas.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleNewReport}
-              className="rounded bg-tadeo-blue px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-900"
-            >
-              Crear otro reporte
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-5">
-            {/* Geolocation status */}
-            <ZoneDetection
+
+            <ReportForm
+              zone={selectedZone}
               geoStatus={geo.status}
-              error={geo.error}
-              accuracy={geo.accuracy}
               detection={detection}
-              isNear={nearCampus}
-              onRetry={geo.retry}
+              accuracy={geo.accuracy}
+              isNearCampus={nearCampus}
+              latitude={geo.latitude}
+              longitude={geo.longitude}
+              showManualSelector={showManualSelector}
               onChangeZone={handleChangeZone}
+              onSelectZone={handleSelectZone}
+              onRetryGeo={geo.retry}
+              onSuccess={handleSuccess}
             />
-
-            {/* Manual zone selector */}
-            {showSelector && (
-              <ZoneSelector selectedZone={selectedZone} onSelect={handleSelectZone} />
-            )}
-
-            {/* Report form */}
-            {zoneReady && (
-              <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                <ReportForm
-                  zone={selectedZone!}
-                  latitude={geo.latitude}
-                  longitude={geo.longitude}
-                  onSuccess={handleSuccess}
-                  onChangeZone={handleChangeZone}
-                />
-              </div>
-            )}
           </div>
         )}
       </div>
