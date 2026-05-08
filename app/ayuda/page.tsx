@@ -50,7 +50,7 @@ export default function AyudaHub() {
 
           {/* Reportar Situación */}
           <Link
-            href="/ayuda/reportar"
+            href="/reportar"
             className="group flex flex-col items-center gap-4 border border-slate-200 bg-white p-8 shadow-panel transition-shadow hover:shadow-lg"
           >
             <div className="flex h-14 w-14 items-center justify-center bg-tadeo-yellow text-tadeo-blue transition-transform group-hover:scale-110">

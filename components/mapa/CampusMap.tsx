@@ -162,7 +162,7 @@ export function CampusMapPage() {
 
             {/* Create report link */}
             <Link
-              href="/reportar"
+              href={selectedZoneId ? `/reportar?zone=${selectedZoneId}` : "/reportar"}
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-tadeo-blue bg-tadeo-blue px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900"
             >
               <FileText className="h-4 w-4" />

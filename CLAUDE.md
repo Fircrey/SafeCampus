@@ -45,7 +45,7 @@ Dos backends conviven:
    └─ Socket.IO client  ─▶ Flask + YOLOv8 local (best.pt) ─▶ Postgres :5433
 ```
 
-## Estado actual (2026-05-05)
+## Estado actual (2026-05-07)
 
 - Auth con JWT y roles implementado (`backend/auth.py`)
 - Detector de armas funcional con bounding boxes corregidos (commit `284c681`)
@@ -53,9 +53,20 @@ Dos backends conviven:
 - Mascota Cabito y páginas de ayuda integradas
 - 34 bugs corregidos en una pasada (commit `1aa4bd4`)
 - **Mapa interactivo** `/mapa` con 23 zonas SVG del campus (OpenStreetMap), reportes por zona, SocketIO en tiempo real
+- **Dashboard Bento Grid** `/` rediseñado (commit `f9559e6`): bento responsivo con datos reales, cards condicionales por rol
 - **No hay tests automatizados** — validación manual
 - **No hay CI/CD** — `.github/workflows/` no existe
 - Deploy: README sugiere Vercel (frontend); backend Flask sin pipeline definido
+
+## Dashboard (`/`)
+
+- Bento grid responsivo: 1 col (mobile), 2 cols (tablet), 4 cols (desktop)
+- Componentes en `components/dashboard/` (9 archivos)
+- **Vista admin**: HeroCard con métricas, SystemHealthCard, ReportSummaryCard, ZoneActivityCard, LiveDetectionsCard, QuickLinksGrid
+- **Vista usuario**: HeroCard (sin métricas), ZoneActivityCard, QuickLinksGrid
+- Hook `useSystemHealth` pollea `/flask/health` cada 30s
+- Degradación graceful: si Flask offline, todas las cards muestran fallback sin crashear
+- Reutiliza hooks existentes: `useZoneReports`, `useDetectorSocket`, `useAuth`, `hasMinRole`
 
 ## Mapa del Campus (`/mapa`)
 

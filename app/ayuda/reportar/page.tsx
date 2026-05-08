@@ -1,9 +1,9 @@
-import { ReportPage } from "@/components/chat/ReportPage";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Reportar Situación · SafeCampus AI"
 };
 
 export default function ReportarRoute() {
-  return <ReportPage />;
+  redirect("/reportar");
 }
