@@ -17,7 +17,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`hidden md:flex h-screen flex-col bg-tadeo-blueDark transition-all duration-300 ${
+      className={`hidden md:flex h-screen flex-col bg-gradient-to-b from-[#011D3A] to-[#0A1628] transition-all duration-300 ${
         collapsed ? "w-16" : "w-60"
       }`}
       style={{ position: "sticky", top: 0 }}
@@ -31,7 +31,7 @@ export function Sidebar() {
         />
         {!collapsed && (
           <div className="overflow-hidden">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-tadeo-yellow">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-tadeo-cyan">
               Utadeo
             </p>
             <p className="truncate text-sm font-black text-white">SafeCampus AI</p>

@@ -29,7 +29,9 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col md:flex-row">
       <MobileHeader />
       <Sidebar />
-      <div className="flex-1 overflow-auto">{children}</div>
+      <div key={pathname} className="page-transition flex-1 overflow-auto">
+        {children}
+      </div>
     </div>
   );
 }

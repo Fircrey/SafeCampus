@@ -25,7 +25,7 @@ export function HeroCard({ className = "", showStats = false }: { className?: st
   }, [showStats]);
 
   return (
-    <div className={`overflow-hidden rounded-xl bg-tadeo-blue p-6 text-white ${className}`}>
+    <div className={`overflow-hidden rounded-2xl bg-gradient-to-br from-tadeo-blue to-tadeo-blueDark p-6 text-white shadow-card-elevated ${className}`}>
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
         {/* Left: mascot + text */}
         <div className="flex items-center gap-4 sm:flex-1">
@@ -37,7 +37,7 @@ export function HeroCard({ className = "", showStats = false }: { className?: st
             className="hidden shrink-0 drop-shadow-lg sm:block"
           />
           <div>
-            <span className="inline-flex items-center gap-1.5 bg-tadeo-yellow px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-tadeo-blue">
+            <span className="inline-flex items-center gap-1.5 rounded bg-tadeo-cyan px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-white">
               <Zap className="h-3 w-3" />
               Centro de monitoreo
             </span>
@@ -56,7 +56,7 @@ export function HeroCard({ className = "", showStats = false }: { className?: st
                 ? (m.format ? m.format(raw) : String(raw))
                 : "---";
               return (
-                <div key={m.key} className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm">
+                <div key={m.key} className="rounded-lg border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-blue-200">
                     {m.label}
                   </p>

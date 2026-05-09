@@ -11,12 +11,12 @@ interface QuickPromptsProps {
 
 export function QuickPrompts({ onSelect }: QuickPromptsProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="stagger-fade-in flex flex-wrap gap-2">
       {QUICK_PROMPTS.map((prompt) => (
         <button
           key={prompt}
           onClick={() => onSelect(prompt)}
-          className="focus-ring border border-slate-200 px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:border-tadeo-blue"
+          className="focus-ring rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-semibold text-slate-700 transition-all hover:border-tadeo-cyan hover:bg-tadeo-cyanLight hover:text-tadeo-cyanDark"
         >
           {prompt}
         </button>

@@ -65,7 +65,7 @@ export function BienestarPage() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-3xl px-6 py-8">
-        <div className="overflow-hidden bg-white shadow-panel">
+        <div className="overflow-hidden rounded-2xl bg-white shadow-panel">
           {/* Header */}
           <div className="border-b border-slate-200 p-5">
             <a href="/ayuda" className="mb-2 inline-block text-xs text-slate-400 hover:text-tadeo-blue">
@@ -80,7 +80,7 @@ export function BienestarPage() {
                 className="rounded-full"
               />
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-tadeo-blue">
+                <p className="text-xs font-bold uppercase tracking-widest text-tadeo-cyan">
                   Chat de bienestar
                 </p>
                 <h1 className="text-xl font-black text-tadeo-ink">

@@ -131,15 +131,15 @@ export function ChatPage() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-3xl px-6 py-8">
-        <div className="overflow-hidden bg-white shadow-panel">
+        <div className="overflow-hidden rounded-2xl bg-white shadow-panel">
           {/* Header */}
           <div className="border-b border-slate-200 p-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center bg-tadeo-blue text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-tadeo-blue text-white">
                 <Bot className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-tadeo-blue">
+                <p className="text-xs font-bold uppercase tracking-widest text-tadeo-cyan">
                   Chat de bienestar
                 </p>
                 <h1 className="text-xl font-black text-tadeo-ink">Orientación y reporte</h1>

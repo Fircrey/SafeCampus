@@ -30,7 +30,7 @@ const LINKS: QuickLink[] = [
     icon: Map,
     label: "Mapa del Campus",
     description: "Reporta y visualiza incidentes por zona.",
-    accent: "bg-tadeo-yellow",
+    accent: "bg-tadeo-cyan",
   },
   {
     href: "/rutas",
@@ -43,16 +43,16 @@ const LINKS: QuickLink[] = [
 
 export function QuickLinksGrid({ className = "" }: { className?: string }) {
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>
+    <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${className}`}>
       <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-500">
         Acceso rápido
       </h3>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="stagger-fade-in grid grid-cols-2 gap-3">
         {LINKS.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="group flex flex-col gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4 transition-all hover:border-slate-200 hover:bg-white hover:shadow-md"
+            className="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all hover:border-slate-200 hover:bg-white hover:shadow-card-hover hover:-translate-y-0.5"
           >
             <div
               className={`flex h-9 w-9 items-center justify-center rounded-full text-white ${item.accent}`}

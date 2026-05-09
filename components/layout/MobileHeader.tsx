@@ -98,8 +98,8 @@ export function MobileHeader() {
                       onClick={() => setOpen(false)}
                       className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
                         isActive
-                          ? "bg-tadeo-yellow text-tadeo-blue"
-                          : "text-slate-300 hover:bg-white/10 hover:text-white"
+                          ? "border-l-[3px] border-tadeo-cyan bg-white/[0.08] text-white"
+                          : "border-l-[3px] border-transparent text-slate-300 hover:bg-white/[0.06] hover:text-white"
                       }`}
                     >
                       <item.icon className="h-5 w-5 shrink-0" />

@@ -1,7 +1,7 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { User } from "lucide-react";
 import type { ChatMessage } from "@/lib/types";
 
 interface ChatMessagesProps {
@@ -28,7 +28,7 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
       {messages.map((msg, i) => (
         <div
           key={msg.id ?? `${msg.role}-${i}`}
-          className={`flex items-start gap-2 ${
+          className={`msg-enter flex items-start gap-2.5 ${
             msg.role === "user" ? "justify-end" : ""
           }`}
         >
@@ -38,7 +38,7 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
               alt="Cabito"
               width={36}
               height={36}
-              className="mt-1 shrink-0 rounded-full"
+              className="mt-1 shrink-0 rounded-full shadow-sm"
             />
           )}
           <div
@@ -50,20 +50,26 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
           >
             {msg.content}
           </div>
+          {msg.role === "user" && (
+            <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-tadeo-cyan/15 text-tadeo-cyanDark">
+              <User className="h-4 w-4" />
+            </div>
+          )}
         </div>
       ))}
       {loading && (
-        <div className="flex items-start gap-2">
+        <div className="msg-enter flex items-start gap-2.5">
           <img
             src="/mascot-chat.png"
             alt="Cabito"
             width={36}
             height={36}
-            className="mt-1 shrink-0 rounded-full"
+            className="mt-1 shrink-0 rounded-full shadow-sm"
           />
-          <div className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Escribiendo
+          <div className="flex items-center gap-1.5 rounded-2xl bg-slate-100 px-4 py-3.5">
+            <span className="typing-dot" />
+            <span className="typing-dot" />
+            <span className="typing-dot" />
           </div>
         </div>
       )}

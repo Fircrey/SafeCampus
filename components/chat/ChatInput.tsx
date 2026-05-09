@@ -30,7 +30,7 @@ export function ChatInput({
   return (
     <form className="flex gap-2" onSubmit={handleSubmit}>
       <textarea
-        className="focus-ring min-h-[52px] flex-1 resize-none border border-slate-300 px-3 py-3 text-sm"
+        className="focus-ring min-h-[52px] flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm transition-colors focus:border-tadeo-cyan focus:bg-white"
         placeholder={reportMode ? "Responde la pregunta del reporte..." : "Escribe aquí..."}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -47,7 +47,7 @@ export function ChatInput({
         disabled={disabled}
       />
       <button
-        className="focus-ring flex w-12 items-center justify-center bg-tadeo-blue text-white disabled:opacity-60"
+        className="focus-ring flex w-12 items-center justify-center rounded-xl bg-tadeo-blue text-white shadow-sm transition-all hover:bg-tadeo-blueDark hover:shadow-md active:scale-95 disabled:opacity-60"
         type="submit"
         disabled={disabled}
         aria-label="Enviar"

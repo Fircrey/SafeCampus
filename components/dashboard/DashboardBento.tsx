@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/components/auth/AuthContext";
 import { hasMinRole } from "@/lib/auth-utils";
+import { DashboardSkeleton } from "./DashboardSkeleton";
 import { HeroCard } from "./HeroCard";
 import { SystemHealthCard } from "./SystemHealthCard";
 import { ReportSummaryCard } from "./ReportSummaryCard";
@@ -14,17 +15,13 @@ export function DashboardBento() {
   const isAdmin = hasMinRole(user?.role, "admin");
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-tadeo-blue" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
     <main className="min-h-screen bg-tadeo-paper">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="stagger-fade-in grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Row 1: Hero + System Health (admin only) */}
           <HeroCard
             className={isAdmin ? "md:col-span-2 lg:col-span-3" : "md:col-span-2 lg:col-span-4"}

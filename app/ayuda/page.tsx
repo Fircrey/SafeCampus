@@ -28,13 +28,13 @@ export default function AyudaHub() {
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="stagger-fade-in grid gap-6 sm:grid-cols-2">
           {/* Chat de Bienestar */}
           <Link
             href="/ayuda/bienestar"
-            className="group flex flex-col items-center gap-4 border border-slate-200 bg-white p-8 shadow-panel transition-shadow hover:shadow-lg"
+            className="group flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-8 shadow-panel transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
           >
-            <div className="flex h-14 w-14 items-center justify-center bg-tadeo-blue text-white transition-transform group-hover:scale-110">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-tadeo-blue text-white transition-transform group-hover:scale-110">
               <Bot className="h-7 w-7" />
             </div>
             <div className="text-center">
@@ -51,9 +51,9 @@ export default function AyudaHub() {
           {/* Reportar Situación */}
           <Link
             href="/reportar"
-            className="group flex flex-col items-center gap-4 border border-slate-200 bg-white p-8 shadow-panel transition-shadow hover:shadow-lg"
+            className="group flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-8 shadow-panel transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
           >
-            <div className="flex h-14 w-14 items-center justify-center bg-tadeo-yellow text-tadeo-blue transition-transform group-hover:scale-110">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-tadeo-cyan text-white transition-transform group-hover:scale-110">
               <AlertTriangle className="h-7 w-7" />
             </div>
             <div className="text-center">

@@ -10,7 +10,7 @@ interface BentoCardProps {
 
 export function BentoCard({ children, className = "", title, icon: Icon }: BentoCardProps) {
   return (
-    <article className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>
+    <article className={`rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ${className}`}>
       {title && (
         <header className="mb-4 flex items-center gap-2">
           {Icon && <Icon className="h-4 w-4 text-slate-400" />}
