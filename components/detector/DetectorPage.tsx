@@ -68,23 +68,23 @@ export function DetectorPage() {
   }, [clearLog]);
 
   return (
-    <main className="min-h-screen bg-cctv-bg text-cctv-text">
+    <main className="min-h-screen">
       {/* Header */}
-      <div className="border-b border-cctv-border px-6 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="border-b border-slate-200 bg-white px-6 py-4">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img
               src="/mascot-detector.png"
               alt="Cabito Seguridad"
-              width={52}
-              height={52}
-              className="drop-shadow-[0_0_6px_rgba(34,197,94,0.4)]"
+              width={44}
+              height={44}
+              className="shrink-0 drop-shadow-md"
             />
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-cctv-muted">
-                YOLOv8 · Tiempo real
+              <p className="text-xs font-bold uppercase tracking-widest text-tadeo-blue">
+                Universidad Jorge Tadeo Lozano
               </p>
-              <h1 className="text-2xl font-black">Detector en Vivo</h1>
+              <h1 className="text-xl font-black text-tadeo-ink">Detector en Vivo</h1>
             </div>
           </div>
           <DetectorControls
@@ -99,10 +99,10 @@ export function DetectorPage() {
         </div>
       </div>
 
-      <div className="space-y-5 p-6">
+      <div className="mx-auto max-w-7xl space-y-5 px-6 py-6">
         {/* Connection error */}
         {error && (
-          <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
@@ -114,12 +114,12 @@ export function DetectorPage() {
 
         {/* Connection status indicator */}
         {status === "connecting" && (
-          <p className="animate-pulse text-center text-xs text-yellow-400">
+          <p className="animate-pulse text-center text-xs text-amber-600">
             Conectando con el servidor de detección...
           </p>
         )}
         {status === "offline" && !active && !error && (
-          <p className="text-center text-xs text-cctv-muted">
+          <p className="text-center text-xs text-slate-500">
             Servidor fuera de línea. Asegúrate de que Flask está ejecutándose en localhost:5000.
           </p>
         )}
@@ -134,7 +134,7 @@ export function DetectorPage() {
         <DetectionLog entries={log} />
 
         {/* Disclaimer */}
-        <p className="text-center text-xs text-cctv-muted">
+        <p className="text-center text-xs text-slate-400">
           El sistema requiere validación humana. Armas detectadas: pistola, cuchillo.
           IA alerta, personas deciden.
         </p>
