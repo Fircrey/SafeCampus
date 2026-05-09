@@ -45,18 +45,37 @@ Dos backends conviven:
    └─ Socket.IO client  ─▶ Flask + YOLOv8 local (best.pt) ─▶ Postgres :5433
 ```
 
-## Estado actual (2026-05-07)
+## Estado actual (2026-05-08)
 
 - Auth con JWT y roles implementado (`backend/auth.py`)
 - Detector de armas funcional con bounding boxes corregidos (commit `284c681`)
+- **Detector estilo unificado** — tema oscuro CCTV reemplazado por tema claro institucional UTADEO (`97bb3ed`)
 - Reportes con foto persistidos en `backend/uploads/`
 - Mascota Cabito y páginas de ayuda integradas
 - 34 bugs corregidos en una pasada (commit `1aa4bd4`)
 - **Mapa interactivo** `/mapa` con 23 zonas SVG del campus (OpenStreetMap), reportes por zona, SocketIO en tiempo real
 - **Dashboard Bento Grid** `/` rediseñado (commit `f9559e6`): bento responsivo con datos reales, cards condicionales por rol
+- **Reportar** `/reportar` con GPS, confirmación post-envío y enriquecimiento (`92494e7`)
+- **Documentación completa** — informe técnico LaTeX/PDF/DOCX + 15 diagramas UML/arquitectura renderizados en PNG/SVG (`d9a4e14`)
 - **No hay tests automatizados** — validación manual
 - **No hay CI/CD** — `.github/workflows/` no existe
 - Deploy: README sugiere Vercel (frontend); backend Flask sin pipeline definido
+
+## Documentación (`docs/`)
+
+- `docs/proyecto/informe_tecnico_safecampus.tex` — Informe técnico completo en LaTeX
+- `docs/proyecto/informe_tecnico_safecampus.pdf` — PDF compilado
+- `docs/proyecto/informe_tecnico_safecampus.docx` — Versión Word
+- `docs/diagramas-arquitectura.md` — Guía con 15 diagramas Mermaid
+- `docs/rendered/` — 15 diagramas renderizados (`.mmd`, `.png`, `.svg`):
+  - 01: Contexto, 02: Casos de uso, 03: Componentes, 04: Clases UML, 05: ER
+  - 06: Navegación, 07-11: Secuencias (login, reportes, detector, chat, admin)
+  - 12-13: Estados (reporte, detector), 14: Despliegue, 15: Arquitectura LLM
+
+## Pendientes / Bugs conocidos
+
+- **BUG: PATCH /reports/<id>/enrich retorna 404** — El endpoint existe en código (`backend/reports.py`) pero Flask corre con `debug=False` y NO auto-recarga. Hipótesis: el usuario no reinició Flask después del deploy del código. Verificar: 1) Reiniciar Flask, 2) Si persiste, revisar que Next.js rewrite `/flask/:path*` pase correctamente PATCH a rutas con sub-paths como `/api/reports/42/enrich`.
+- **Póster académico** — pendiente para feria universitaria (A1 vertical, LaTeX o Canva)
 
 ## Dashboard (`/`)
 
@@ -67,6 +86,18 @@ Dos backends conviven:
 - Hook `useSystemHealth` pollea `/flask/health` cada 30s
 - Degradación graceful: si Flask offline, todas las cards muestran fallback sin crashear
 - Reutiliza hooks existentes: `useZoneReports`, `useDetectorSocket`, `useAuth`, `hasMinRole`
+
+## Reportar (`/reportar`)
+
+- Flujo: Form (4 campos esenciales) → POST → Pantalla confirmación → Enriquecimiento opcional (PATCH)
+- Componentes en `components/reportar/` (ReportForm, ReportConfirmation, ReportarPage, ZoneSelector)
+- Geolocalización automática con fallback a selector manual de zonas
+- Acepta `?zone=<id>` desde `/mapa` para preseleccionar zona
+- Form esencial: descripción, ubicación (zona), tipo, riesgo inmediato
+- Post-envío: resumen, banner emergencia (si riesgo=sí), sección expandible "Complementar reporte"
+- Enriquecimiento: foto, prioridad, anonimato, contacto → `PATCH /reports/<id>/enrich`
+- `/ayuda` apunta directo a `/reportar`; `/ayuda/reportar` redirige a `/reportar`
+- Hook `useGeolocation` + `detectZone()` + `isNearCampus()` en `lib/geo-utils.ts`
 
 ## Mapa del Campus (`/mapa`)
 

@@ -1,6 +1,6 @@
 # API Contracts — SafeCampus
 
-> Snapshot 2026-05-05. Mantener actualizado cuando cambien endpoints.
+> Snapshot 2026-05-07. Mantener actualizado cuando cambien endpoints.
 
 ## Flask backend (`http://localhost:5000` por defecto)
 
@@ -15,11 +15,13 @@
 - `POST /auth/logout` (Bearer) — opcional, JWT es stateless
 
 ### Reports (`backend/reports.py`)
-- `POST /reports` (Bearer) → multipart con `type_description, location, immediate_risk, contact_preference, is_anonymous, photo, zone_id?, zone_name?, priority?` → `Report`
+- `POST /reports` (Bearer) → multipart con `type_description, location, immediate_risk, contact_preference, is_anonymous, photo, zone_id?, zone_name?, priority?, latitude?, longitude?` → `Report`
 - `GET  /reports` (Bearer admin) → `[Report]`
+- `GET  /reports/<id>` (Bearer, creador o admin) → `Report`
 - `GET  /reports/by-zone` (Bearer) → `{zones: [{zone_id, zone_name, count}]}` — conteo de reportes abiertos/en revisión por zona
+- `PATCH /reports/<id>/enrich` (Bearer, solo creador, solo status=open) → `{priority?, is_anonymous?, contact_preference?, photo_base64?, photo_name?}` → `Report`
 - `PATCH /reports/<id>` (Bearer admin) → `{status, notes}` → `Report`
-- `GET  /reports/<id>/photo` (Bearer admin) → archivo binario
+- `GET  /reports/<id>/photo` (Bearer, creador o admin) → archivo binario
 
 ### Admin (`backend/admin.py`)
 - `GET    /admin/users` (Bearer admin)
