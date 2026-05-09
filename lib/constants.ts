@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Map,
   MapPin,
+  Settings,
   Users
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -26,6 +27,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/reportar", label: "Crear Reporte", icon: FileText },
   { href: "/mapa", label: "Mapa del Campus", icon: Map },
   { href: "/rutas", label: "Rutas Institucionales", icon: MapPin },
+  { href: "/ajustes", label: "Ajustes", icon: Settings },
   { href: "/admin/reports", label: "Panel Reportes", icon: ClipboardList, minRole: "admin" },
   { href: "/admin/users", label: "Gestión Usuarios", icon: Users, minRole: "superadmin" },
 ];
