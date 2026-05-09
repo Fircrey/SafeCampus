@@ -1,0 +1,21 @@
+flowchart TD
+  Root["/"] --> Dashboard["Dashboard"]
+  Root --> Ayuda["/ayuda"]
+  Ayuda --> Bienestar["/ayuda/bienestar"]
+  Ayuda --> Reportar["/reportar"]
+  Root --> Mapa["/mapa"]
+  Mapa --> ReportarZona["/reportar?zone=:zoneId"]
+  Root --> Rutas["/rutas"]
+  Root --> Detector["/detector"]
+  Root --> AdminReports["/admin/reports"]
+  Root --> AdminUsers["/admin/users"]
+  Login["/login"] --> Root
+  Register["/register"] --> Root
+  ChatLegacy["/chat"] --> Ayuda
+  AyudaReportLegacy["/ayuda/reportar"] --> Reportar
+
+  Middleware["middleware.ts"]
+  Middleware --> Public["Publico: /login, /register"]
+  Middleware --> Authenticated["Resto requiere cookie token"]
+  Middleware --> AdminOnly["/detector y /admin/* requieren admin"]
+  Middleware --> SuperOnly["/admin/users requiere superadmin"]

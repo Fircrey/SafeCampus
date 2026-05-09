@@ -1,0 +1,25 @@
+flowchart LR
+  Usuario([Usuario autenticado])
+  Admin([Admin])
+  Superadmin([Superadmin])
+  Browser["Navegador web"]
+  Next["Next.js App\nApp Router + UI + API routes"]
+  Flask["Flask Backend\nREST + Socket.IO + Video stream"]
+  DB[(PostgreSQL)]
+  Camera["Camara local\nOpenCV"]
+  Model["Modelo YOLOv8\nbackend/models/best.pt"]
+  OpenAI["OpenAI API\n/api/chat"]
+  Roboflow["Roboflow Detect API\n/api/detect demo"]
+
+  Usuario --> Browser
+  Admin --> Browser
+  Superadmin --> Browser
+  Browser --> Next
+  Next -- "REST proxy /flask/*" --> Flask
+  Browser -- "Socket.IO directo" --> Flask
+  Browser -- "MJPEG /video_feed?token" --> Flask
+  Next -- "chat completions" --> OpenAI
+  Next -- "single image detection" --> Roboflow
+  Flask --> DB
+  Flask --> Camera
+  Flask --> Model

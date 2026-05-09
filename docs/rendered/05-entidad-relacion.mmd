@@ -1,0 +1,34 @@
+erDiagram
+  USERS {
+    INT id PK
+    VARCHAR email UK
+    VARCHAR name
+    VARCHAR password_hash
+    VARCHAR role
+    BOOLEAN is_active
+    DATETIME created_at
+  }
+
+  REPORTS {
+    INT id PK
+    INT user_id FK
+    BOOLEAN is_anonymous
+    TEXT type_description
+    VARCHAR location
+    VARCHAR immediate_risk
+    VARCHAR contact_preference
+    VARCHAR photo_filename
+    VARCHAR status
+    TEXT notes
+    VARCHAR zone_id
+    VARCHAR zone_name
+    VARCHAR priority
+    FLOAT latitude
+    FLOAT longitude
+    DATETIME created_at
+    DATETIME resolved_at
+    INT resolved_by FK
+  }
+
+  USERS ||--o{ REPORTS : creates
+  USERS ||--o{ REPORTS : resolves

@@ -1,0 +1,18 @@
+sequenceDiagram
+  actor Usuario
+  participant Page as BienestarPage
+  participant Api as Next /api/chat
+  participant OpenAI as OpenAI API
+  participant Protocols as lib/protocols.ts
+
+  Usuario->>Page: envia mensaje
+  Page->>Api: POST /api/chat {messages}
+  Api->>Protocols: assistantInstructions
+  alt OPENAI_API_KEY definido
+    Api->>OpenAI: chat completions
+    OpenAI-->>Api: respuesta
+    Api-->>Page: {reply}
+  else sin OPENAI_API_KEY
+    Api-->>Page: respuesta demo
+  end
+  Page-->>Usuario: muestra orientacion

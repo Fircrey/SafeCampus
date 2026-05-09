@@ -1,0 +1,26 @@
+flowchart TB
+  Dev["Maquina de desarrollo"]
+  Browser["Browser\nlocalhost:3000"]
+  Next["Next.js dev server\nnpm run dev"]
+  Flask["Flask + Socket.IO\npython backend/app.py\nlocalhost:5000"]
+  Docker["Docker Compose"]
+  PG["Postgres 16 Alpine\nlocalhost:5433"]
+  Cam["Camara local"]
+  Model["backend/models/best.pt"]
+  Uploads["backend/uploads"]
+  OpenAI["OpenAI API"]
+  Roboflow["Roboflow API"]
+
+  Dev --> Next
+  Dev --> Flask
+  Dev --> Docker
+  Docker --> PG
+  Browser --> Next
+  Browser -- "/flask/* rewrite" --> Flask
+  Browser -- "Socket.IO y video directo" --> Flask
+  Flask --> PG
+  Flask --> Cam
+  Flask --> Model
+  Flask --> Uploads
+  Next --> OpenAI
+  Next --> Roboflow

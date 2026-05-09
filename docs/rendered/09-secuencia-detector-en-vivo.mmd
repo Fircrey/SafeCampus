@@ -1,0 +1,32 @@
+sequenceDiagram
+  actor Admin
+  participant UI as DetectorPage
+  participant Client as flask-client
+  participant SocketHook as useDetectorSocket
+  participant Flask as Flask app.py
+  participant Cam as OpenCV Camera
+  participant YOLO as YOLOv8 model
+  participant Tracker as DetectionTracker
+
+  Admin->>UI: pulsa Iniciar
+  UI->>Client: startDetection()
+  Client->>Flask: POST /api/start con JWT admin
+  Flask->>Flask: valida admin_required y model_loaded
+  Flask-->>UI: success
+  UI->>Flask: img /video_feed?token=JWT
+  SocketHook->>Flask: Socket.IO connect(token)
+  Flask->>Cam: abrir camara
+  loop frames
+    Cam-->>Flask: frame
+    Flask->>YOLO: inferencia cada FRAME_SKIP
+    YOLO-->>Flask: boxes/clases/confianza
+    Flask->>Tracker: add(best_weapon)
+    Flask-->>SocketHook: new_detection, stats_update
+    Flask-->>SocketHook: alert o alert_clear
+    Flask-->>UI: frame MJPEG con bounding boxes
+  end
+  Admin->>UI: pulsa Detener
+  UI->>Client: stopDetection()
+  Client->>Flask: POST /api/stop
+  Flask->>Cam: liberar camara
+  Flask-->>SocketHook: status_change offline

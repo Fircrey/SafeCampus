@@ -6,6 +6,7 @@ node_modules
 dist
 coverage
 *.log
+.DS_Store
 
 # Claude Code — config compartida SÍ va al repo, settings personales no
 .claude/settings.local.json

@@ -1,0 +1,48 @@
+flowchart LR
+  U([Usuario])
+  A([Admin])
+  S([Superadmin])
+  O([OpenAI])
+  C([Camara/YOLO])
+
+  subgraph SafeCampus["SafeCampus AI"]
+    UC1(["Registrarse"])
+    UC2(["Iniciar sesion"])
+    UC3(["Ver dashboard"])
+    UC4(["Usar chat de bienestar"])
+    UC5(["Crear reporte"])
+    UC6(["Complementar reporte"])
+    UC7(["Consultar mapa del campus"])
+    UC8(["Consultar rutas institucionales"])
+    UC9(["Monitorear detector en vivo"])
+    UC10(["Iniciar/detener camara"])
+    UC11(["Ver historial y estadisticas de deteccion"])
+    UC12(["Gestionar reportes"])
+    UC13(["Ver foto adjunta"])
+    UC14(["Gestionar usuarios"])
+    UC15(["Recibir alertas en tiempo real"])
+  end
+
+  U --> UC1
+  U --> UC2
+  U --> UC3
+  U --> UC4
+  U --> UC5
+  U --> UC6
+  U --> UC7
+  U --> UC8
+
+  A --> UC9
+  A --> UC10
+  A --> UC11
+  A --> UC12
+  A --> UC13
+  A --> UC15
+
+  S --> UC14
+  S --> UC12
+  S --> UC9
+
+  UC4 --> O
+  UC9 --> C
+  UC15 --> C
