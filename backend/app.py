@@ -41,7 +41,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://safecampus:safecampus123@
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "best.pt")
 
-GUN_LABELS = {"gun", "arma", "pistola", "pistol"}
+GUN_LABELS = {"gun", "arma", "pistola", "pistol", "rifle", "shot-gun", "submachine-gun"}
 KNIFE_LABELS = {"knife", "cuchillo"}
 WEAPON_LABELS = GUN_LABELS | KNIFE_LABELS
 
@@ -230,8 +230,10 @@ def _process_detections(results, alert_state):
             cls_id = int(box.cls[0])
             label = result.names[cls_id]
 
-            is_weapon = label.lower() in WEAPON_LABELS
-            is_gun = label.lower() in GUN_LABELS
+            label_lower = label.lower()
+            is_gun = label_lower in GUN_LABELS
+            is_knife = label_lower in KNIFE_LABELS
+            is_weapon = is_gun or is_knife
 
             detection = {
                 "label": label,
@@ -266,8 +268,9 @@ def _process_detections(results, alert_state):
             # Cooldown: no re-alertar si ya alerto hace poco
             if now - alert_state.last_alert_time >= ALERT_COOLDOWN:
                 alert_state.last_alert_time = now
+                weapon_type = "gun" if best_weapon["is_gun"] else "knife"
                 events.append(("alert", {
-                    "type": "gun" if best_weapon["is_gun"] else "knife",
+                    "type": weapon_type,
                     "label": best_weapon["label"],
                     "confidence": round(best_weapon["confidence"], 2),
                     "timestamp": datetime.now().strftime("%H:%M:%S"),
@@ -295,7 +298,10 @@ def _draw_detections(frame, detections):
     for det in detections:
         x1, y1, x2, y2 = det["box"]
         if det["is_weapon"]:
-            color = (0, 0, 255) if det["is_gun"] else (0, 165, 255)
+            if det["is_gun"]:
+                color = (0, 0, 255)        # rojo para armas de fuego
+            else:
+                color = (0, 165, 255)      # amarillo para cuchillos
         else:
             color = (0, 255, 0)
 
@@ -521,14 +527,23 @@ def api_status():
 @app.route("/api/start", methods=["POST"])
 @admin_required
 def start_camera():
+    global _diagnostic_done
+
     if model is None:
         return jsonify({"success": False, "message": "Modelo no cargado"}), 500
 
     with lock:
         if camera is not None and camera.isOpened():
-            return jsonify({"success": False, "message": "Cámara ya en uso"}), 409
+            if _stop_event.is_set():
+                # Detector detenido pero camara no se libero aun (race condition).
+                # Liberar la camara vieja para permitir re-inicio.
+                _release_camera()
+                log.info("Camara residual liberada para permitir re-inicio")
+            else:
+                return jsonify({"success": False, "message": "Cámara ya en uso"}), 409
 
     _stop_event.clear()
+    _diagnostic_done = False
     log.info("Camara iniciada por el usuario")
     return jsonify({"success": True, "message": "Camara iniciada"})
 
@@ -536,9 +551,12 @@ def start_camera():
 @app.route("/api/stop", methods=["POST"])
 @admin_required
 def stop_camera():
+    global _diagnostic_done
+
     _stop_event.set()
     with lock:
         _release_camera()
+    _diagnostic_done = False
 
     socketio.emit("status_change", {"status": "offline"})
     log.info("Camara detenida por el usuario")
