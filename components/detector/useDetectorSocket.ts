@@ -69,21 +69,28 @@ export function useDetectorSocket({ onAlert }: UseDetectorSocketOptions = {}) {
       setStats(data);
     });
 
-    socket.on("new_detection", (entry: DetectorLogEntry) => {
-      const withId: DetectorLogEntry = { ...entry, id: crypto.randomUUID() };
-      setLog((prev) => [withId, ...prev].slice(0, 50));
-    });
-
     socket.on("alert", (data: DetectorAlert) => {
       setActiveAlert(data);
       onAlertRef.current?.(data);
-      // Clear any existing auto-dismiss timer before setting a new one
+      // Cancelar timer anterior: la alerta se mantiene mientras sigan llegando
       if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
-      alertTimerRef.current = setTimeout(() => setActiveAlert(null), 5000);
+      // Auto-dismiss solo si no llega otra alerta en 8 segundos (fallback)
+      alertTimerRef.current = setTimeout(() => setActiveAlert(null), 8000);
+    });
+
+    socket.on("new_detection", (entry: DetectorLogEntry) => {
+      const withId: DetectorLogEntry = { ...entry, id: crypto.randomUUID() };
+      setLog((prev) => [withId, ...prev].slice(0, 50));
+      // Mientras sigan llegando detecciones, renovar el timer de la alerta
+      if (alertTimerRef.current) {
+        clearTimeout(alertTimerRef.current);
+        alertTimerRef.current = setTimeout(() => setActiveAlert(null), 8000);
+      }
     });
 
     socket.on("alert_clear", () => {
       if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
+      alertTimerRef.current = null;
       setActiveAlert(null);
     });
 

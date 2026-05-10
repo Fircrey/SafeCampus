@@ -135,7 +135,7 @@ export function DetectorPage() {
 
         {/* Disclaimer */}
         <p className="text-center text-xs text-slate-400">
-          El sistema requiere validación humana. Armas detectadas: pistola, cuchillo.
+          El sistema requiere validación humana. Amenazas detectadas: armas de fuego (rifles, pistolas, escopetas, subfusiles) y cuchillos.
           IA alerta, personas deciden.
         </p>
       </div>
