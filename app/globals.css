@@ -234,6 +234,12 @@ html.dark .text-white {
   color: #ffffff !important;
 }
 
+/* Tadeo blue text → cyan in dark mode (unreadable on dark backgrounds) */
+html.dark .text-tadeo-blue,
+html.dark .text-\[\#003A70\] {
+  color: #00C9DB !important;
+}
+
 /* Toggle bg override for slate-300 buttons */
 html.dark .bg-slate-300 {
   background-color: #475569 !important;
