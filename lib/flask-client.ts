@@ -154,7 +154,6 @@ export async function createReportWithPhoto(
   });
   if (!res.ok) {
     const errorBody = await res.text().catch(() => "");
-    console.error("[createReportWithPhoto] Error:", res.status, errorBody);
     throw new Error(`HTTP ${res.status}: ${errorBody}`);
   }
   const data = await res.json() as { report: Report };

@@ -21,8 +21,7 @@ export async function POST(request: NextRequest) {
       status: flaskRes.status,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error) {
-    console.error("[api/reports/upload] Proxy error:", error);
+  } catch {
     return NextResponse.json(
       { error: "Error interno del proxy" },
       { status: 500 }

@@ -78,9 +78,7 @@ export function ReportPage() {
         photoFile
       );
       saved = true;
-    } catch (err) {
-      console.error("[ReportPage] Error guardando reporte:", err);
-    }
+    } catch { /* error handled via `saved` flag */ }
     setMessages((prev) => [
       ...prev,
       { role: "assistant", content: buildSummary(draft, saved) },

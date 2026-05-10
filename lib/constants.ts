@@ -51,8 +51,6 @@ export const FLASK_API_AUTH_LOGIN = "/flask/api/auth/login";
 export const FLASK_API_AUTH_REGISTER = "/flask/api/auth/register";
 export const FLASK_API_AUTH_ME = "/flask/api/auth/me";
 export const FLASK_API_REPORTS = "/flask/api/reports";
-// Upload de fotos va DIRECTO a Flask (proxy Next.js no soporta multipart/form-data)
-export const FLASK_API_REPORTS_DIRECT = `${FLASK_URL}/api/reports`;
 export const FLASK_API_ADMIN_USERS = "/flask/api/admin/users";
 export const FLASK_API_REPORTS_BY_ZONE = "/flask/api/reports/by-zone";
 export const FLASK_API_HEALTH = "/flask/health";
