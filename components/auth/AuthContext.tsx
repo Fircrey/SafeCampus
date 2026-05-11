@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const flaskUrl = process.env.NEXT_PUBLIC_FLASK_URL;
     if (!flaskUrl) {
       // Demo mode: no backend, simulate a demo user
-      setUser({ id: 0, email: "demo@utadeo.edu.co", name: "Usuario Demo", role: "admin", is_active: true });
+      setUser({ id: 0, email: "demo@utadeo.edu.co", name: "Usuario Demo", role: "admin", is_active: true, created_at: null });
       setToken("demo");
       setLoading(false);
       return;
