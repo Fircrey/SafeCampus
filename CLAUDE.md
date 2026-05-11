@@ -65,9 +65,11 @@ Dos backends conviven:
 - **FIX: Cámara no reiniciaba sin recargar página** — `backend/app.py` `start_camera()`: si `camera.isOpened()` pero `_stop_event.is_set()`, libera cámara residual en vez de retornar 409. También resetea `_diagnostic_done` en start y stop para que el diagnóstico one-shot corra de nuevo.
 - **FIX: Alerta desaparecía muy rápido** — `components/detector/useDetectorSocket.ts`: timeout de alerta subido a 8s como fallback. Cada `new_detection` renueva el timer — la alerta persiste mientras el arma siga en cámara. `alert_clear` del backend la limpia de inmediato.
 - **FIX: Dark mode — texto azul ilegible** — `app/globals.css`: `text-tadeo-blue` y `text-[#003A70]` se reemplazan por cyan UTADEO (`#00C9DB`) en dark mode. Cubre 22 archivos sin tocar ninguno.
+- **Deploy a Vercel (2026-05-11)** — frontend desplegado en `https://safecampus-ai.vercel.app`. Modo demo sin auth: cuando `NEXT_PUBLIC_FLASK_URL` no esta configurada, middleware deja pasar sin JWT y AuthContext simula usuario demo (admin). Backend Flask no desplegado (requiere host con proceso persistente para Socket.IO + camara).
+- **README.md profesional (2026-05-11)** — reescrito con header+badges, resumen 150 palabras, arquitectura ASCII, metricas del modelo, API reference completa, roles, paleta UTADEO.
+- **.gitignore ampliado** — `*.pt`, `runs/`, `.vercel` excluidos del repo.
 - **No hay tests automatizados** — validación manual
 - **No hay CI/CD** — `.github/workflows/` no existe
-- Deploy: README sugiere Vercel (frontend); backend Flask sin pipeline definido
 
 ## Revisión Legal (2026-05-09)
 
@@ -76,27 +78,25 @@ Contratos con TAINF S.A.S. revisados (Contrato App Móvil + Contrato Panel + NDA
 Los contratos excluyen explícitamente: sistemas institucionales, proyectos de seguridad/monitoreo distintos a botón de pánico, y presentaciones en ferias.
 **Precaución en la feria**: no mencionar TAINF, AlerTainf, ni mostrar código/datos de ese proyecto.
 
-## Entrega Final — Pendientes proxima sesion
+## Entrega Final — Estado actual
 
 Formulario de entrega universitaria (UTADEO). Estado de cada campo:
 
 | Campo | Estado | Detalle |
 |-------|--------|---------|
 | Titulo | Listo | SafeCampus AI - Sistema de Deteccion de Armas con IA |
-| Resumen | **Pendiente** | Redactar parrafo ~150 palabras |
-| Direccion/URL despliegue | **Pendiente** | No hay deploy (Railway/Render pendiente) |
-| Integrantes (hasta 6) | Por llenar | Sergio + Jesus + otros |
-| YouTube | **Pendiente** | Grabar video demo de la app |
+| Resumen | Listo | Parrafo de 150 palabras en README.md |
+| Direccion/URL despliegue | Listo | `https://safecampus-ai.vercel.app` (modo demo sin auth) |
+| Integrantes (hasta 6) | Por llenar | Sergio + Jesus |
+| YouTube | **Pendiente** | Video subido, falta pegar link |
 | GitHub | Listo | `https://github.com/Fircrey/SafeCampus.git` |
-| Afiche/Poster | **Pendiente** | PDF/PPT/PPTX, max 5MB. Diagramas recomendados: arquitectura, casos de uso (02), ER (05), secuencia reportes (08), estados detector (13), despliegue (14) |
-| Documento | Listo | `docs/proyecto/informe_tecnico_safecampus.pdf` (verificar < 5MB) |
+| Afiche/Poster | **Pendiente** | Disenar poster A1 (PDF/PPT/PPTX, max 5MB) |
+| Documento | Listo | PDF del informe (usuario sube manualmente) |
 
-### Tareas proxima sesion:
-1. Redactar resumen del proyecto (~150 palabras)
-2. Grabar video demo para YouTube
-3. Diseñar y exportar afiche/poster academico A1
-4. Verificar peso del PDF del informe (< 5MB)
-5. Llenar formulario de entrega
+### Tareas pendientes:
+1. Pegar link de YouTube en formulario
+2. Diseñar y exportar afiche/poster academico A1
+3. Llenar formulario de entrega
 
 ## Documentación (`docs/`)
 
@@ -165,7 +165,7 @@ Se excluyen del repo (pero siguen en disco local):
 
 ## Variable env clave para conectar FE↔BE
 
-`NEXT_PUBLIC_FLASK_URL=http://localhost:5000` — el frontend la usa para llamar al backend Flask y conectar Socket.IO. En deploy apuntar al host del Flask (no Vercel).
+`NEXT_PUBLIC_FLASK_URL=http://localhost:5000` — el frontend la usa para llamar al backend Flask y conectar Socket.IO. **Si no esta seteada** (como en Vercel), el middleware desactiva auth y AuthContext simula un usuario demo con rol admin. En deploy con Flask, apuntar al host real (no Vercel).
 
 ## Comandos
 
@@ -203,7 +203,7 @@ npm run build         # asegurar que Next compila
 4. CORS hardcoded a `localhost:3000/3001` en `backend/app.py` — actualizar al desplegar.
 5. `SECRET_KEY` por defecto = `"cambiar-esta-clave"` — **rotar antes de cualquier deploy**.
 6. React 19 + `@types/react ^18` → posible drift de tipos.
-7. `middleware.ts` en root es el gate de auth de Next — leerlo antes de tocar rutas.
+7. `middleware.ts` en root es el gate de auth de Next — si `NEXT_PUBLIC_FLASK_URL` no esta seteada, deja pasar todo (modo demo). Leerlo antes de tocar rutas.
 8. Sin Alembic — cambios de schema se aplican con `db.create_all()`. Schema destructivo requiere drop manual.
 9. `MAX_CONTENT_LENGTH = 16 MB` en Flask → fotos grandes rechazadas.
 10. `backend/uploads/` no persiste en filesystem efímero (contenedores, serverless).
