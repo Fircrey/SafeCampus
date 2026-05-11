@@ -15,6 +15,7 @@ const DEFAULT_STATS: DetectorStats = {
   total_detections: 0,
   guns: 0,
   knives: 0,
+  explosives: 0,
   average_confidence: 0
 };
 

@@ -52,7 +52,7 @@ export type Detection = {
 export type DetectorStatus = "online" | "offline" | "connecting";
 
 export type DetectorAlert = {
-  type: "gun" | "knife";
+  type: "gun" | "knife" | "explosive";
   label: string;
   confidence: number;
   timestamp: string;
@@ -69,5 +69,6 @@ export type DetectorStats = {
   total_detections: number;
   guns: number;
   knives: number;
+  explosives: number;
   average_confidence: number;
 };

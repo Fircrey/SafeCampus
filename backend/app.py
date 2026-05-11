@@ -43,7 +43,8 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "best.pt")
 
 GUN_LABELS = {"gun", "arma", "pistola", "pistol", "rifle", "shot-gun", "submachine-gun"}
 KNIFE_LABELS = {"knife", "cuchillo"}
-WEAPON_LABELS = GUN_LABELS | KNIFE_LABELS
+EXPLOSIVE_LABELS = {"explosion", "grenade", "granada"}
+WEAPON_LABELS = GUN_LABELS | KNIFE_LABELS | EXPLOSIVE_LABELS
 
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL, logging.INFO),
@@ -150,11 +151,13 @@ class DetectionTracker:
             history = list(self._history)
         guns = sum(1 for d in history if d["class"].lower() in GUN_LABELS)
         knives = sum(1 for d in history if d["class"].lower() in KNIFE_LABELS)
+        explosives = sum(1 for d in history if d["class"].lower() in EXPLOSIVE_LABELS)
         avg_conf = round(np.mean([d["confidence"] for d in history]), 2) if history else 0
         return {
             "total_detections": len(history),
             "guns": guns,
             "knives": knives,
+            "explosives": explosives,
             "average_confidence": avg_conf,
         }
 
@@ -233,7 +236,8 @@ def _process_detections(results, alert_state):
             label_lower = label.lower()
             is_gun = label_lower in GUN_LABELS
             is_knife = label_lower in KNIFE_LABELS
-            is_weapon = is_gun or is_knife
+            is_explosive = label_lower in EXPLOSIVE_LABELS
+            is_weapon = is_gun or is_knife or is_explosive
 
             detection = {
                 "label": label,
@@ -241,6 +245,7 @@ def _process_detections(results, alert_state):
                 "box": (x1, y1, x2, y2),
                 "is_weapon": is_weapon,
                 "is_gun": is_gun,
+                "is_explosive": is_explosive,
             }
             detections.append(detection)
 
@@ -268,7 +273,7 @@ def _process_detections(results, alert_state):
             # Cooldown: no re-alertar si ya alerto hace poco
             if now - alert_state.last_alert_time >= ALERT_COOLDOWN:
                 alert_state.last_alert_time = now
-                weapon_type = "gun" if best_weapon["is_gun"] else "knife"
+                weapon_type = "gun" if best_weapon["is_gun"] else ("explosive" if best_weapon["is_explosive"] else "knife")
                 events.append(("alert", {
                     "type": weapon_type,
                     "label": best_weapon["label"],
@@ -300,6 +305,8 @@ def _draw_detections(frame, detections):
         if det["is_weapon"]:
             if det["is_gun"]:
                 color = (0, 0, 255)        # rojo para armas de fuego
+            elif det["is_explosive"]:
+                color = (0, 0, 200)        # rojo oscuro para explosivos
             else:
                 color = (0, 165, 255)      # amarillo para cuchillos
         else:

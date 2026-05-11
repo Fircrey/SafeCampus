@@ -9,6 +9,7 @@ const metrics: { key: keyof DetectorStats; label: string; format?: (v: number) =
   { key: "total_detections", label: "Detecciones" },
   { key: "guns", label: "Armas de fuego" },
   { key: "knives", label: "Armas blancas" },
+  { key: "explosives", label: "Explosivos" },
   { key: "average_confidence", label: "Confianza prom.", format: (v) => `${Math.round(v * 100)}%` },
 ];
 

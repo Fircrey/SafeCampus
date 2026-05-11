@@ -22,6 +22,8 @@ backend/dataset/
 backend/uploads/
 best.pt
 best.pt.zip
+*.pt
+runs/
 tsconfig.tsbuildinfo
 
 # Documentación, diagramas y reglas internas (no van al repo)

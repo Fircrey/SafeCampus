@@ -31,7 +31,7 @@ export function LiveDetectionsCard({ className = "" }: { className?: string }) {
       </div>
 
       {/* Mini metrics */}
-      <div className="mb-4 grid grid-cols-3 gap-2">
+      <div className="mb-4 grid grid-cols-4 gap-2">
         <div className="rounded-lg bg-slate-50 px-3 py-2 text-center">
           <p className="text-lg font-black text-tadeo-blue">{stats.total_detections}</p>
           <p className="text-[10px] text-slate-500">Total</p>
@@ -43,6 +43,10 @@ export function LiveDetectionsCard({ className = "" }: { className?: string }) {
         <div className="rounded-lg bg-slate-50 px-3 py-2 text-center">
           <p className="text-lg font-black text-tadeo-blue">{stats.knives}</p>
           <p className="text-[10px] text-slate-500">Blancas</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 px-3 py-2 text-center">
+          <p className="text-lg font-black text-tadeo-blue">{stats.explosives}</p>
+          <p className="text-[10px] text-slate-500">Explosivos</p>
         </div>
       </div>
 

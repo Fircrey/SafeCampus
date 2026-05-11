@@ -40,7 +40,10 @@ export function DashboardStats() {
         label="Armas blancas"
         value={stats ? String(stats.knives) : "—"}
       />
-      <MetricCard label="Modelo" value="YOLOv8" />
+      <MetricCard
+        label="Explosivos"
+        value={stats ? String(stats.explosives) : "—"}
+      />
     </>
   );
 }

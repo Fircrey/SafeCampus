@@ -29,7 +29,7 @@ MVP demostrativo de plataforma de seguridad universitaria (Universidad Jorge Tad
 | Backend | Flask + Flask-SQLAlchemy + Flask-SocketIO + Flask-CORS | `async_mode="threading"` |
 | Auth | JWT (PyJWT) + bcrypt | Roles: `user / admin / superadmin` |
 | BD | PostgreSQL 16 (Docker) en puerto **5433** | Schema en `backend/models.py`, sin Alembic |
-| ML | `ultralytics` (YOLOv8s) + OpenCV + `best.pt` (re-entrenamiento con dataset Mahad Ahmed ~8,451 imgs) | También Roboflow Cloud desde Next API |
+| ML | `ultralytics` (YOLOv8n) + OpenCV + `best.pt` (HuggingFace `Subh775/Threat-Detection-YOLOv8n`, 4 clases) | También Roboflow Cloud desde Next API |
 | Externos | OpenAI (`gpt-4o-mini` por defecto), Roboflow Universe | Ambos opcionales — modo demo si faltan |
 
 ## Arquitectura
@@ -60,8 +60,8 @@ Dos backends conviven:
 - **UI rediseñada** — tema cyan, animaciones stagger/page-transition, login/register glassmorphism, skeleton loading (`f7e44a3`)
 - **Ajustes** `/ajustes` con dark mode (toggle), tamaño de fuente (3 niveles), versión, firma MagnorTech (`b533cf1`)
 - **Limpieza de código** — eliminados: constante muerta `FLASK_API_REPORTS_DIRECT`, 4 console.error de debug, `serverExternalPackages: []`, paleta CCTV completa de Tailwind
-- **Modelo YOLO reemplazado** — custom `best.pt` sustituido por `Threat-Detection-YOLOv8n` (HuggingFace `Subh775/Threat-Detection-YOLOv8n`). Clases: Gun, knife, explosion, grenade. mAP@50=81.3%. Threshold subido a 0.50. Frontend actualizado con categoría "Explosivos" en stats/dashboard/detector.
-- **Nuevo modelo en entrenamiento (2026-05-11)** — YOLOv8s (small, 11.2M params) entrenándose en Google Colab con dataset "Gun and Knife Detection" de Mahad Ahmed (~8,451 imgs). Notebook: `backend/train_safecampus.ipynb`. Resultados se guardan en Google Drive (`SafeCampus-Training/gun_knife_v2/`). Al terminar, copiar `best.pt` a `backend/models/best.pt`.
+- **Modelo YOLO activo** — `Threat-Detection-YOLOv8n` (HuggingFace `Subh775/Threat-Detection-YOLOv8n`). Clases: Gun, knife, explosion, grenade. mAP@50=81.3%. Threshold 0.50. Frontend con categoría "Explosivos" en stats/dashboard/detector.
+- **Re-entrenamiento fallido y revertido (2026-05-11)** — YOLOv8s entrenado en Colab se interrumpió (epoch:-1, best_fitness:None). Modelo resultante peor que el original. Se revirtió a HuggingFace. Notebook reescrito con mejores hiperparámetros (`gun_knife_v3`): epochs=150, batch=-1 (AutoBatch), patience=50, cos_lr=True, close_mosaic=15, augmentaciones ajustadas para CCTV. Celda de emergencia para resume. Listo para segundo intento.
 - **FIX: Cámara no reiniciaba sin recargar página** — `backend/app.py` `start_camera()`: si `camera.isOpened()` pero `_stop_event.is_set()`, libera cámara residual en vez de retornar 409. También resetea `_diagnostic_done` en start y stop para que el diagnóstico one-shot corra de nuevo.
 - **FIX: Alerta desaparecía muy rápido** — `components/detector/useDetectorSocket.ts`: timeout de alerta subido a 8s como fallback. Cada `new_detection` renueva el timer — la alerta persiste mientras el arma siga en cámara. `alert_clear` del backend la limpia de inmediato.
 - **FIX: Dark mode — texto azul ilegible** — `app/globals.css`: `text-tadeo-blue` y `text-[#003A70]` se reemplazan por cyan UTADEO (`#00C9DB`) en dark mode. Cubre 22 archivos sin tocar ninguno.
@@ -129,7 +129,7 @@ Se excluyen del repo (pero siguen en disco local):
 
 - **BUG: PATCH /reports/<id>/enrich retorna 404** — El endpoint existe en código (`backend/reports.py`) pero Flask corre con `debug=False` y NO auto-recarga. Hipótesis: el usuario no reinició Flask después del deploy del código. Verificar: 1) Reiniciar Flask, 2) Si persiste, revisar que Next.js rewrite `/flask/:path*` pase correctamente PATCH a rutas con sub-paths como `/api/reports/42/enrich`.
 - ~~**BUG: POST /api/start retorna 409 "Cámara ya en uso"**~~ — **RESUELTO (2026-05-11)**. `start_camera()` ahora libera cámara residual si `_stop_event.is_set()`.
-- **Modelo YOLO en entrenamiento** — YOLOv8s en Colab. Cuando termine: descargar `best.pt` de Google Drive (`SafeCampus-Training/gun_knife_v2/weights/best.pt`) → copiar a `backend/models/best.pt`. Verificar que las clases del nuevo modelo coincidan con `GUN_LABELS`/`KNIFE_LABELS` en `backend/app.py`. Si el modelo nuevo no tiene clases `explosion`/`grenade`, eliminar la categoría "Explosivos" del frontend.
+- **Re-entrenamiento YOLO pendiente** — Notebook reescrito (`backend/train_safecampus.ipynb`, run: `gun_knife_v3`). Antes de ejecutar: borrar `SafeCampus-Training/gun_knife_v2/` de Google Drive. Si el nuevo modelo supera al de HuggingFace (mAP@50 > 0.813), copiar `best.pt` a `backend/models/` y verificar clases vs `GUN_LABELS`/`KNIFE_LABELS`/`EXPLOSIVE_LABELS` en `backend/app.py`.
 - **Póster académico** — en progreso para feria universitaria (A1 vertical, prompts de Cabito generados)
 
 ## Dashboard (`/`)
@@ -197,7 +197,7 @@ npm run build         # asegurar que Next compila
 
 ## Gotchas Conocidos
 
-1. `best.pt` ahora viene de HuggingFace (`Subh775/Threat-Detection-YOLOv8n`). Descarga: `python -c "from huggingface_hub import hf_hub_download; import shutil; shutil.copy2(hf_hub_download('Subh775/Threat-Detection-YOLOv8n','weights/best.pt'), 'backend/models/best.pt')"`. Requiere `pip install huggingface_hub`.
+1. `best.pt` viene de HuggingFace (`Subh775/Threat-Detection-YOLOv8n`, 6 MB, 4 clases). Descarga: `python -c "from huggingface_hub import hf_hub_download; import shutil; shutil.copy2(hf_hub_download('Subh775/Threat-Detection-YOLOv8n','weights/best.pt'), 'backend/models/best.pt')"`. Requiere `pip install huggingface_hub`. Si se re-entrena con exito en Colab, reemplazar por el nuevo `best.pt` (run `gun_knife_v3`).
 2. Socket.IO con threading **no funciona en serverless** — backend necesita Railway/Render/Fly.
 3. Postgres en puerto **5433** (no 5432) — colisión local.
 4. CORS hardcoded a `localhost:3000/3001` en `backend/app.py` — actualizar al desplegar.

@@ -9,6 +9,7 @@ export function StatsGrid({ stats }: StatsGridProps) {
     { label: "Total detecciones", value: stats.total_detections },
     { label: "Armas de fuego", value: stats.guns },
     { label: "Armas blancas", value: stats.knives },
+    { label: "Explosivos", value: stats.explosives },
     {
       label: "Confianza media",
       value: `${Math.round(stats.average_confidence * 100)}%`
@@ -16,7 +17,7 @@ export function StatsGrid({ stats }: StatsGridProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
       {items.map((item) => (
         <div key={item.label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
