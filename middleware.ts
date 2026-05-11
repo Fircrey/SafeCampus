@@ -33,6 +33,12 @@ const PROTECTED_ROUTES: { prefix: string; minRole: UserRole }[] = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Demo mode: if no Flask backend configured, skip all auth
+  const flaskUrl = process.env.NEXT_PUBLIC_FLASK_URL;
+  if (!flaskUrl) {
+    return NextResponse.next();
+  }
+
   // Allow public paths (redirect to dashboard if already authenticated)
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     const token = request.cookies.get("token")?.value;

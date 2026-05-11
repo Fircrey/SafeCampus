@@ -20,8 +20,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount, check for existing token
+  // On mount, check for existing token or enter demo mode
   useEffect(() => {
+    const flaskUrl = process.env.NEXT_PUBLIC_FLASK_URL;
+    if (!flaskUrl) {
+      // Demo mode: no backend, simulate a demo user
+      setUser({ id: 0, email: "demo@utadeo.edu.co", name: "Usuario Demo", role: "admin", is_active: true });
+      setToken("demo");
+      setLoading(false);
+      return;
+    }
+
     const stored = localStorage.getItem("token");
     if (stored) {
       setToken(stored);
