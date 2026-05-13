@@ -1,5 +1,6 @@
 import os
 import time
+import base64
 import threading
 import logging
 from datetime import datetime
@@ -163,6 +164,10 @@ class DetectionTracker:
 
 
 tracker = DetectionTracker()
+
+# Per-SID state for browser-mode camera (getUserMedia)
+_browser_alert_states = {}   # sid → AlertState
+_browser_processing = {}     # sid → bool (backpressure flag)
 
 
 # ------------------------------------
@@ -615,7 +620,10 @@ def handle_connect():
 
 @socketio.on("disconnect")
 def handle_disconnect():
-    log.info("Cliente desconectado")
+    sid = request.sid
+    _browser_alert_states.pop(sid, None)
+    _browser_processing.pop(sid, None)
+    log.info("Cliente desconectado (sid=%s)", sid)
 
 
 @socketio.on("get_status")
@@ -625,6 +633,90 @@ def handle_get_status():
         cam_open = camera is not None and camera.isOpened()
     emit("status_change", {"status": "online" if cam_open else "offline"})
     emit("stats_update", stats)
+
+
+# ------------------------------------
+# BROWSER CAMERA MODE (getUserMedia)
+# ------------------------------------
+@socketio.on("browser_start")
+def handle_browser_start():
+    sid = request.sid
+    _browser_alert_states[sid] = AlertState()
+    _browser_processing[sid] = False
+    emit("status_change", {"status": "online"})
+    log.info("Browser camera started (sid=%s)", sid)
+
+
+@socketio.on("browser_frame")
+def handle_browser_frame(data):
+    sid = request.sid
+
+    if model is None:
+        return
+
+    # Backpressure: drop frame if previous inference not done
+    if _browser_processing.get(sid, False):
+        return
+
+    _browser_processing[sid] = True
+    try:
+        frame_b64 = data.get("frame", "")
+        frame_id = data.get("frame_id", 0)
+
+        # Strip data URL prefix if present
+        if "," in frame_b64:
+            frame_b64 = frame_b64.split(",", 1)[1]
+
+        img_bytes = base64.b64decode(frame_b64)
+        np_arr = np.frombuffer(img_bytes, dtype=np.uint8)
+        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        if frame is None:
+            return
+
+        t0 = time.time()
+        results = model(frame, conf=CONFIDENCE_THRESHOLD, imgsz=640, verbose=False)
+        inference_ms = round((time.time() - t0) * 1000)
+
+        alert_state = _browser_alert_states.get(sid)
+        if alert_state is None:
+            return
+
+        detections, events = _process_detections(results, alert_state)
+
+        for event_name, event_data in events:
+            emit(event_name, event_data)
+
+        # Send bounding boxes back to client for canvas overlay
+        boxes = []
+        for det in detections:
+            boxes.append({
+                "label": det["label"],
+                "confidence": round(det["confidence"], 2),
+                "box": list(det["box"]),
+                "is_weapon": det["is_weapon"],
+                "is_gun": det["is_gun"],
+                "is_explosive": det["is_explosive"],
+            })
+
+        emit("detection_result", {
+            "detections": boxes,
+            "frame_id": frame_id,
+            "inference_ms": inference_ms,
+        })
+    except Exception as e:
+        log.error("Error processing browser frame: %s", e)
+    finally:
+        _browser_processing[sid] = False
+
+
+@socketio.on("browser_stop")
+def handle_browser_stop():
+    sid = request.sid
+    _browser_alert_states.pop(sid, None)
+    _browser_processing.pop(sid, None)
+    emit("status_change", {"status": "offline"})
+    log.info("Browser camera stopped (sid=%s)", sid)
 
 
 # ------------------------------------

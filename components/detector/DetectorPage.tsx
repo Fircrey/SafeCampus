@@ -10,13 +10,19 @@ import { StatsGrid } from "./StatsGrid";
 import { useDetectorSocket } from "./useDetectorSocket";
 import { VideoFeed } from "./VideoFeed";
 
+type CameraMode = "browser" | "mjpeg";
+
 export function DetectorPage() {
   const { play, toggleMute, isMuted } = useAlertSound();
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cameraMode] = useState<CameraMode>("browser");
 
-  const { status, stats, log, activeAlert, clearLog, dismissAlert } = useDetectorSocket({
+  const {
+    status, stats, log, activeAlert, clearLog, dismissAlert,
+    detectionBoxes, inferenceMs, startBrowserStream, stopBrowserStream,
+  } = useDetectorSocket({
     onAlert: () => play()
   });
 
@@ -31,32 +37,53 @@ export function DetectorPage() {
     };
   }, [activeAlert]);
 
+  const handleVideoReady = useCallback((video: HTMLVideoElement) => {
+    startBrowserStream(video, 8);
+  }, [startBrowserStream]);
+
+  const handleCameraError = useCallback((message: string) => {
+    setError(message);
+    setActive(false);
+  }, []);
+
   const handleStart = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await startDetection();
-      if (result.success) {
+      if (cameraMode === "browser") {
+        // Browser mode: just activate — VideoFeed opens getUserMedia,
+        // then calls onVideoReady which triggers startBrowserStream
         setActive(true);
       } else {
-        setError(result.message ?? "Error al iniciar el detector");
+        // MJPEG mode: call Flask to open server-side camera
+        const result = await startDetection();
+        if (result.success) {
+          setActive(true);
+        } else {
+          setError(result.message ?? "Error al iniciar el detector");
+        }
       }
     } catch {
       setError("No se puede conectar con Flask. ¿Está ejecutándose en localhost:5000?");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cameraMode]);
 
   const handleStop = useCallback(async () => {
     setLoading(true);
     try {
-      await stopDetection();
-      setActive(false);
+      if (cameraMode === "browser") {
+        stopBrowserStream();
+        setActive(false);
+      } else {
+        await stopDetection();
+        setActive(false);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cameraMode, stopBrowserStream]);
 
   const handleClear = useCallback(async () => {
     clearLog();
@@ -124,8 +151,16 @@ export function DetectorPage() {
           </p>
         )}
 
-        {/* Video feed — activo si el usuario inicio la deteccion */}
-        <VideoFeed active={active} status={status} />
+        {/* Video feed */}
+        <VideoFeed
+          active={active}
+          status={status}
+          mode={cameraMode}
+          detectionBoxes={detectionBoxes}
+          inferenceMs={inferenceMs}
+          onVideoReady={handleVideoReady}
+          onCameraError={handleCameraError}
+        />
 
         {/* Stats */}
         <StatsGrid stats={stats} />

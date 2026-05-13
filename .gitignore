@@ -29,3 +29,4 @@ tsconfig.tsbuildinfo
 # Documentación, diagramas y reglas internas (no van al repo)
 docs/
 .claude/rules/
+.vercel

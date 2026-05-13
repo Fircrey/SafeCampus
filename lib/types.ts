@@ -72,3 +72,20 @@ export type DetectorStats = {
   explosives: number;
   average_confidence: number;
 };
+
+// --- Browser-mode detection (getUserMedia → Flask YOLO) ---
+
+export type DetectionBox = {
+  label: string;
+  confidence: number;
+  box: [number, number, number, number]; // [x1, y1, x2, y2]
+  is_weapon: boolean;
+  is_gun: boolean;
+  is_explosive: boolean;
+};
+
+export type DetectionResult = {
+  detections: DetectionBox[];
+  frame_id: number;
+  inference_ms: number;
+};
